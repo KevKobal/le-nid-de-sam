@@ -1,0 +1,12 @@
+# Photos originales (plusieurs Mo chacune) : seules les versions optimisées
+# du dossier img/ servent au site. Les originaux restent en local.
+IMG_*.jpeg
+IMG_*.JPEG
+IMG_*.jpg
+
+# macOS
+.DS_Store
+
+# Configuration locale de l'éditeur : contient des chemins propres à la machine
+# (dossier de prévisualisation), sans intérêt pour le site publié.
+.claude/
