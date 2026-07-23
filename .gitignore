@@ -3,6 +3,9 @@
 IMG_*.jpeg
 IMG_*.JPEG
 IMG_*.jpg
+# Original haute résolution de la photo Moselle (~26 Mo) : seule img/moselle.jpg
+# (optimisée) est publiée.
+img/paysage moselle.JPG
 
 # Vidéo source en 4K (~200 Mo) : trop lourde pour GitHub (limite 100 Mo) et
 # pour le web. Seule la version optimisée video/paysage.mp4 est publiée.
