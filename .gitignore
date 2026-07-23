@@ -4,6 +4,12 @@ IMG_*.jpeg
 IMG_*.JPEG
 IMG_*.jpg
 
+# Vidéo source en 4K (~200 Mo) : trop lourde pour GitHub (limite 100 Mo) et
+# pour le web. Seule la version optimisée video/paysage.mp4 est publiée.
+niddesam.mp4
+*.mov
+*.MOV
+
 # macOS
 .DS_Store
 

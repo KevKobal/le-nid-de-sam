@@ -87,12 +87,21 @@
     background: linear-gradient(to bottom, rgba(20, 16, 12, .58), transparent);
     pointer-events: none;
   }
+  /* Fond d'accueil : vidéo du paysage (remplace l'ancien flou).
+     S'efface au fil du défilement, comme le faisait le flou (opacity 1 - p). */
   .sh-bg {
-    position: absolute; inset: -40px; z-index: 0;
-    background: url('img/exterieur.jpg') center 60% / cover no-repeat;
-    filter: blur(28px) saturate(.8) brightness(.45);
+    position: absolute; inset: 0; z-index: 0; overflow: hidden;
+    background: #14100c url('img/paysage-poster.jpg') center / cover no-repeat;
     opacity: calc(1 - var(--p));
   }
+  .sh-bg video {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: center;
+    /* léger assombrissement pour garder le titre et les repères lisibles */
+    filter: brightness(.6) saturate(.95);
+    opacity: 0; transition: opacity .8s ease;
+  }
+  .sh-bg video.pret { opacity: 1; }
   .sh-media {
     position: absolute; inset: 0; z-index: 1;
     clip-path: inset(var(--iy) var(--ix) var(--iy) var(--ix) round calc(26px * (1 - var(--p))));
@@ -408,7 +417,11 @@
   <!-- ======= HERO ======= -->
   <section class="scroll-hero" aria-label="Présentation">
    <div class="sh-stage" id="sh-stage">
-    <div class="sh-bg" aria-hidden="true"></div>
+    <div class="sh-bg" aria-hidden="true">
+      <video id="sh-video" muted loop playsinline preload="metadata" poster="img/paysage-poster.jpg">
+        <source src="video/paysage.mp4" type="video/mp4">
+      </video>
+    </div>
     <div class="sh-media">
       <img src="img/exterieur.jpg" alt="La maison indépendante, sa terrasse couverte et son parking privé">
     </div>
@@ -763,6 +776,21 @@
   window.addEventListener('scroll', planifier, { passive: true });
   window.addEventListener('resize', planifier);
   calme.addEventListener('change', majScroll);
+
+  // Vidéo du paysage en fond : on ne la charge que si le contexte s'y prête.
+  // Sinon (mobile, « réduire les animations », économiseur de données), on garde
+  // seulement le poster — pas de téléchargement de 12 Mo en 4G.
+  (() => {
+    const video = document.getElementById('sh-video');
+    if (!video) return;
+    const eco = navigator.connection && (navigator.connection.saveData ||
+                /2g|slow/.test(navigator.connection.effectiveType || ''));
+    if (calme.matches || eco || window.matchMedia('(max-width: 760px)').matches) return;
+    video.preload = 'auto';
+    const lancer = () => video.play().then(() => video.classList.add('pret')).catch(() => {});
+    if (video.readyState >= 3) lancer();
+    else video.addEventListener('canplay', lancer, { once: true });
+  })();
 
   // Apparition douce des sections
   const io = new IntersectionObserver((entries) => {
