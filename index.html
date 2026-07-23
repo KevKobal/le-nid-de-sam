@@ -432,8 +432,8 @@
   <section class="scroll-hero" aria-label="Présentation">
    <div class="sh-stage" id="sh-stage">
     <div class="sh-bg" aria-hidden="true">
-      <video id="sh-video" muted loop playsinline preload="metadata" poster="img/paysage-poster.jpg">
-        <source src="video/paysage.mp4" type="video/mp4">
+      <video id="sh-video" muted loop playsinline autoplay preload="auto" poster="img/paysage-poster.jpg">
+        <source data-src="video/paysage.mp4" type="video/mp4">
       </video>
     </div>
     <div class="sh-media">
@@ -805,14 +805,22 @@
   // ces cas, on garde seulement le poster pour ne pas imposer le téléchargement.
   (() => {
     const video = document.getElementById('sh-video');
-    if (!video) return;
+    const source = video && video.querySelector('source');
+    if (!source) return;
     const eco = navigator.connection && (navigator.connection.saveData ||
                 /2g|slow/.test(navigator.connection.effectiveType || ''));
     if (calme.matches || eco) return;
-    video.preload = 'auto';
+    // On ne charge la vidéo que maintenant (source différée) : le poster
+    // s'affiche d'emblée, la vidéo prend le relais dès qu'elle peut jouer.
+    source.src = source.dataset.src;
+    video.load();
     const lancer = () => video.play().then(() => video.classList.add('pret')).catch(() => {});
-    if (video.readyState >= 3) lancer();
-    else video.addEventListener('canplay', lancer, { once: true });
+    lancer();
+    // Filet de sécurité : si le navigateur bloque la lecture auto (iPhone en
+    // mode économie d'énergie, politiques d'autoplay…), on retente au premier
+    // geste du visiteur — toucher, cliquer ou faire défiler suffit.
+    ['touchstart', 'pointerdown', 'scroll'].forEach(ev =>
+      window.addEventListener(ev, lancer, { once: true, passive: true }));
   })();
 
   // Apparition douce des sections
