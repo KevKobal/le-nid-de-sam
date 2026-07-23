@@ -351,6 +351,19 @@
   .info small { display: block; font-size: .85rem; color: var(--ink-soft); margin-top: 4px; }
   @media (max-width: 700px) { .info-grid { grid-template-columns: 1fr; } }
 
+  /* Règles de la maison */
+  .regles-titre {
+    margin-top: 44px; font-size: .8rem; font-weight: 700; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink-soft);
+  }
+  .regles { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 16px; }
+  .regle {
+    display: inline-flex; align-items: center; gap: 11px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 999px;
+    padding: 11px 20px 11px 16px; font-size: .95rem; font-weight: 600;
+  }
+  .regle svg { width: 20px; height: 20px; color: var(--wood-dark); flex: none; }
+
   /* ---------- Disponibilités ---------- */
   .dispos { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
   .agenda-carte {
@@ -524,9 +537,9 @@
       </div>
       <div class="options-grid reveal">
         <div class="option">
-          <span class="price">+99&nbsp;€</span>
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 22h8"/><path d="M12 11v11"/><path d="M12 11a5 5 0 0 0 5-5c0-2-.5-4-1-5H8c-.5 1-1 3-1 5a5 5 0 0 0 5 5z"/></svg></div>
-          <h3>Coffret Couple</h3>
+          <span class="price">+49&nbsp;€</span>
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></div>
+          <h3>Pack LOVE</h3>
           <p>Pour une escapade romantique réussie dès la porte franchie.</p>
           <ul>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Bouteille de champagne</li>
@@ -592,6 +605,12 @@
         <div class="info"><b>Capacité</b><span>2 voyageurs</span><small>Maison entière, 1 chambre</small></div>
         <div class="info"><b>Arrivée / Départ</b><span>Horaires souples</span><small>À convenir ensemble lors de la réservation</small></div>
         <div class="info"><b>Emplacement</b><span>Golbey, Vosges</span><small>L'adresse exacte est communiquée à la réservation</small></div>
+      </div>
+      <p class="regles-titre reveal">Règles de la maison</p>
+      <div class="regles reveal">
+        <span class="regle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 12H9a3 3 0 0 1 0-6h1"/><path d="M18 12v3a2 2 0 0 1-2 2H8"/><path d="M3 3l18 18"/></svg>Logement non-fumeur</span>
+        <span class="regle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="14" r="2"/><path d="M9 10a5 5 0 0 0-5 5c0 2 1.5 3 3 3s2-1 4-1 2.5 1 4 1 3-1 3-3a5 5 0 0 0-5-5z"/><path d="M3 3l18 18"/></svg>Animaux non admis</span>
+        <span class="regle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4" r="2"/><path d="M19 13v-2a1 1 0 0 0-1-1h-3l-2.5-2.5"/><path d="M4 15a4 4 0 1 0 6 3.3"/><path d="M12 8v6h5l3 6"/><path d="M3 3l18 18"/></svg>Non accessible PMR</span>
       </div>
     </div>
   </section>
@@ -660,7 +679,7 @@
           <div class="field full">
             <label>Coffrets en option</label>
             <div class="choice-row">
-              <label class="choice"><input type="checkbox" name="coffret" value="Coffret Couple (+99 €)"><span><b>Coffret Couple</b> <small>· champagne, pétales de rose, chocolats · +99&nbsp;€</small></span></label>
+              <label class="choice"><input type="checkbox" name="coffret" value="Pack LOVE (+49 €)"><span><b>Pack LOVE</b> <small>· champagne, pétales de rose, chocolats · +49&nbsp;€</small></span></label>
               <label class="choice"><input type="checkbox" name="coffret" value="Coffret Vosgien (+29 €)"><span><b>Coffret Vosgien</b> <small>· panier garni · +29&nbsp;€</small></span></label>
             </div>
           </div>
