@@ -799,15 +799,16 @@
   window.addEventListener('resize', planifier);
   calme.addEventListener('change', majScroll);
 
-  // Vidéo du paysage en fond : on ne la charge que si le contexte s'y prête.
-  // Sinon (mobile, « réduire les animations », économiseur de données), on garde
-  // seulement le poster — pas de téléchargement de 12 Mo en 4G.
+  // Vidéo du paysage en fond, y compris sur téléphone.
+  // On respecte tout de même deux choix explicites de l'utilisateur : « réduire
+  // les animations » et l'économiseur de données / réseau très lent (2g) — dans
+  // ces cas, on garde seulement le poster pour ne pas imposer le téléchargement.
   (() => {
     const video = document.getElementById('sh-video');
     if (!video) return;
     const eco = navigator.connection && (navigator.connection.saveData ||
                 /2g|slow/.test(navigator.connection.effectiveType || ''));
-    if (calme.matches || eco || window.matchMedia('(max-width: 760px)').matches) return;
+    if (calme.matches || eco) return;
     video.preload = 'auto';
     const lancer = () => video.play().then(() => video.classList.add('pret')).catch(() => {});
     if (video.readyState >= 3) lancer();
