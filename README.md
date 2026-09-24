@@ -41,7 +41,7 @@ Toutes les heures, la tâche GitHub « Disponibilités » lit l'agenda par son
 **adresse secrète au format iCal**, ne garde que les dates et écrit
 `dispos.json`. La page lit ce fichier et affiche son propre calendrier.
 
-- L'adresse secrète est stockée dans le secret **`ICAL_URLS`** du dépôt
+- L'adresse secrète est stockée dans le secret **`CALENDRIER`** du dépôt
   (Settings → Secrets and variables → Actions). Elle n'apparaît ni dans le
   code ni dans les journaux. Plusieurs adresses possibles, séparées par des
   espaces (par exemple Airbnb et Booking plus tard).
@@ -59,12 +59,12 @@ Toutes les heures, la tâche GitHub « Disponibilités » lit l'agenda par son
    « Le Nid de Sam » → section « Intégrer l'agenda » → copier l'**adresse
    secrète au format iCal** (elle se termine par `basic.ics`).
 2. GitHub → dépôt `le-nid-de-sam` → Settings → Secrets and variables →
-   Actions → **New repository secret** → nom `ICAL_URLS`, valeur : l'adresse
+   Actions → **New repository secret** → nom `CALENDRIER`, valeur : l'adresse
    copiée.
 3. Onglet Actions → « Disponibilités » → Run workflow.
 
 Si l'adresse secrète a fuité : dans Google Agenda, « Réinitialiser » à côté de
-l'adresse secrète, puis remplacer la valeur du secret `ICAL_URLS`.
+l'adresse secrète, puis remplacer la valeur du secret `CALENDRIER`.
 
 ## Demandes de réservation
 

@@ -1,7 +1,7 @@
 # Met à jour dispos.json (les nuits réservées affichées sur le site) à partir
 # de l'agenda « Le Nid de Sam ».
 #
-# L'adresse secrète de l'agenda est lue dans le secret ICAL_URLS du dépôt
+# L'adresse secrète de l'agenda est lue dans le secret CALENDRIER du dépôt
 # (Settings → Secrets and variables → Actions). Plusieurs adresses possibles,
 # séparées par des espaces : agenda Google, puis plus tard Airbnb, Booking…
 #
@@ -32,7 +32,7 @@ jobs:
 
       - name: Lire l'agenda et calculer les nuits réservées
         env:
-          ICAL_URLS: ${{ secrets.ICAL_URLS }}
+          ICAL_URLS: ${{ secrets.CALENDRIER }}
         run: python3 scripts/maj_dispos.py
 
       - name: Publier dispos.json s'il a changé
