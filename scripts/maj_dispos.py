@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Met à jour dispos.json à partir d'un ou plusieurs agendas au format iCal.
 
-Lancé toutes les heures par la tâche GitHub .github/workflows/dispos.yml.
+Lancé toutes les 10 minutes par la tâche GitHub .github/workflows/dispos.yml.
 
 Les adresses des agendas sont lues dans la variable d'environnement ICAL_URLS
 (séparées par des espaces ou des retours à la ligne), alimentée par le secret

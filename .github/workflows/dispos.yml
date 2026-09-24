@@ -13,7 +13,10 @@ name: Disponibilités
 
 on:
   schedule:
-    - cron: "17 * * * *"   # toutes les heures, à la 17e minute
+    # Toutes les 10 minutes, décalé de 3 min : GitHub retarde souvent les
+    # tâches programmées pile sur l'heure. En pratique, GitHub peut repousser
+    # un passage de quelques minutes quand ses serveurs sont chargés.
+    - cron: "3,13,23,33,43,53 * * * *"
   workflow_dispatch:         # bouton « Run workflow » pour lancer à la main
 
 permissions:

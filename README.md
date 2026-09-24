@@ -17,7 +17,7 @@ Publié via GitHub Pages — voir le lien dans la description du dépôt.
 | `img/` | photos optimisées pour le web |
 | `dispos.json` | nuits réservées, généré automatiquement (ne pas modifier à la main) |
 | `scripts/maj_dispos.py` | lit l'agenda et produit `dispos.json` |
-| `.github/workflows/dispos.yml` | lance ce script toutes les heures |
+| `.github/workflows/dispos.yml` | lance ce script toutes les 10 minutes |
 
 ## Calendrier des disponibilités
 
@@ -33,7 +33,7 @@ par défaut : vérifier la ligne de l'agenda avant d'enregistrer).
 - Ou avec des horaires (arrivée 15 h, départ 11 h) : même résultat.
 - Le titre peut contenir le nom du client : **seules les dates** sont publiées.
 
-Le site se met à jour dans l'heure. Supprimer l'évènement libère les dates.
+Le site se met à jour en 10 à 20 minutes environ. Supprimer l'évènement libère les dates.
 
 ### Prix des nuits
 
@@ -53,7 +53,7 @@ repris dans l'estimation du formulaire de demande.
 
 ### Fonctionnement
 
-Toutes les heures, la tâche GitHub « Disponibilités » lit l'agenda par son
+Toutes les 10 minutes, la tâche GitHub « Disponibilités » lit l'agenda par son
 **adresse secrète au format iCal**, ne garde que les dates et écrit
 `dispos.json`. La page lit ce fichier et affiche son propre calendrier.
 
