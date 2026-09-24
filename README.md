@@ -35,6 +35,22 @@ par défaut : vérifier la ligne de l'agenda avant d'enregistrer).
 
 Le site se met à jour dans l'heure. Supprimer l'évènement libère les dates.
 
+### Prix des nuits
+
+Chaque nuit libre du calendrier affiche son prix (taxe de séjour comprise),
+repris dans l'estimation du formulaire de demande.
+
+- **Prix de base** : 60 € en semaine, 75 € les nuits du vendredi et du samedi.
+  Ils sont définis au début du `<script>` de `index.html` (`TARIF_SEMAINE`,
+  `TARIF_WEEKEND`), à modifier ici s'ils changent.
+- **Prix d'une période particulière** (vacances, fêtes…), géré par le
+  propriétaire depuis l'agenda « Le Nid de Sam » : créer un évènement
+  **toute la journée** dont le titre commence par **« Tarif »** suivi du
+  montant, par exemple « Tarif 95 », du premier soir concerné au lendemain du
+  dernier (même règle qu'une réservation). Ce n'est **pas** une réservation :
+  les nuits restent libres et affichent ce prix. Si deux périodes se
+  chevauchent, la plus courte l'emporte.
+
 ### Fonctionnement
 
 Toutes les heures, la tâche GitHub « Disponibilités » lit l'agenda par son
@@ -75,6 +91,5 @@ script pour ne pas apparaître en clair dans le code source (anti-spam).
 ## À faire
 
 - [ ] Reprendre les photos une fois la maison entièrement aménagée
-- [ ] Confirmer les tarifs et les horaires d'arrivée / départ
 - [ ] Retirer la balise `noindex` de `index.html` lors de la mise en ligne
       définitive (voir le commentaire dans le `<head>`)

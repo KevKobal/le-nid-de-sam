@@ -12,6 +12,11 @@ doivent jamais apparaître dans le code ni dans les journaux.
 Seules les DATES des réservations sont écrites dans dispos.json : aucun titre,
 nom de client ni autre détail ne sort de l'agenda.
 
+Exception volontaire : un évènement dont le titre commence par « Tarif »
+(ex. « Tarif 95 ») n'est PAS une réservation. Il fixe le prix des nuits qu'il
+couvre ; seuls ces dates et ce montant sont publiés. Si plusieurs évènements
+« Tarif » se chevauchent, le plus court (le plus précis) l'emporte.
+
 Sécurité : si un seul des agendas est illisible, le script s'arrête en erreur
 SANS toucher à dispos.json. Publier des données partielles pourrait afficher
 comme libres des nuits déjà réservées.
@@ -90,8 +95,14 @@ def en_date(params: list[str], valeur: str) -> tuple[date, bool]:
     return moment.astimezone(PARIS).date(), False
 
 
-def nuits_reservees(texte: str) -> set[date]:
-    """Ensemble des nuits réservées (une nuit = la date du soir d'arrivée)."""
+TITRE_TARIF = re.compile(r"^\s*tarif\b\D*(\d+)", re.IGNORECASE)
+
+
+def lire_agenda(texte: str) -> tuple[set[date], list[tuple[int, int, set[date]]]]:
+    """Renvoie (nuits réservées, périodes tarifaires).
+
+    Une nuit = la date du soir d'arrivée. Chaque période tarifaire est
+    (durée en nuits, prix, nuits couvertes)."""
     # Agenda saisi à la main dans Google Agenda : un évènement « toute la
     # journée » du 3 au 6 (jour d'arrivée → jour de départ) est stocké avec une
     # fin au 7. Le dernier jour affiché est donc le départ, pas une nuit.
@@ -99,8 +110,15 @@ def nuits_reservees(texte: str) -> set[date]:
     # indiquée est déjà le jour de départ.
     saisie_google = "PRODID:-//Google Inc//Google Calendar" in texte
     nuits: set[date] = set()
+    tarifs: list[tuple[int, int, set[date]]] = []
     for ev in evenements(deplier(texte)):
         if ev.get("STATUS", ([], ""))[1].upper() == "CANCELLED" or "DTSTART" not in ev:
+            continue
+        titre = ev.get("SUMMARY", ([], ""))[1]
+        est_tarif = re.match(r"\s*tarif\b", titre, re.IGNORECASE) is not None  # « Tarifa » reste une réservation
+        prix = TITRE_TARIF.match(titre)
+        if est_tarif and not prix:
+            print("Un évènement « Tarif » sans montant a été ignoré.")
             continue
         debut, journee = en_date(*ev["DTSTART"])
         if "DTEND" in ev:
@@ -114,11 +132,12 @@ def nuits_reservees(texte: str) -> set[date]:
         if fin <= debut:  # évènement dans une seule journée : bloque ce soir-là
             fin = debut + timedelta(days=1)
 
-        jour = debut
-        while jour < fin:
-            nuits.add(jour)
-            jour += timedelta(days=1)
-    return nuits
+        couvertes = {debut + timedelta(days=i) for i in range((fin - debut).days)}
+        if est_tarif:
+            tarifs.append((len(couvertes), int(prix.group(1)), couvertes))
+        else:
+            nuits |= couvertes
+    return nuits, tarifs
 
 
 def en_plages(nuits: list[date]) -> list[list[str]]:
@@ -132,6 +151,18 @@ def en_plages(nuits: list[date]) -> list[list[str]]:
     return [[a.isoformat(), b.isoformat()] for a, b in plages]
 
 
+def en_plages_tarifs(prix_par_nuit: dict[date, int]) -> list[list]:
+    """{3: 95, 4: 95, 5: 80} → [["…-03", "…-05", 95], ["…-05", "…-06", 80]]."""
+    plages: list[list] = []
+    for nuit in sorted(prix_par_nuit):
+        prix = prix_par_nuit[nuit]
+        if plages and plages[-1][1] == nuit and plages[-1][2] == prix:
+            plages[-1][1] = nuit + timedelta(days=1)
+        else:
+            plages.append([nuit, nuit + timedelta(days=1), prix])
+    return [[a.isoformat(), b.isoformat(), p] for a, b, p in plages]
+
+
 def main() -> int:
     urls = os.environ.get("ICAL_URLS", "").split()
     if not urls:
@@ -139,23 +170,40 @@ def main() -> int:
         return 0
 
     nuits: set[date] = set()
+    periodes: list[tuple[int, int, set[date]]] = []
     for numero, url in enumerate(urls, 1):
         hote = urlparse(url).netloc or "fichier local"
         try:
-            nuits |= nuits_reservees(lire_source(url))
+            reservees, tarifs = lire_agenda(lire_source(url))
         except Exception as erreur:  # ne jamais afficher l'URL : elle est secrète
             print(f"Agenda n°{numero} ({hote}) illisible : {type(erreur).__name__}. "
                   "dispos.json n'est pas modifié.", file=sys.stderr)
             return 1
+        nuits |= reservees
+        periodes += tarifs
         print(f"Agenda n°{numero} ({hote}) lu.")
 
     aujourdhui = datetime.now(PARIS).date()
     limite = aujourdhui + timedelta(days=HORIZON_JOURS)
-    a_venir = sorted(n for n in nuits if aujourdhui <= n < limite)
+    dans_horizon = lambda n: aujourdhui <= n < limite
+    a_venir = sorted(n for n in nuits if dans_horizon(n))
 
-    donnees = {"maj": aujourdhui.isoformat(), "reserve": en_plages(a_venir)}
+    # Du plus long au plus court : une période courte posée par-dessus une
+    # longue (ex. un week-end dans une saison) écrase son prix.
+    prix_par_nuit: dict[date, int] = {}
+    for _, prix, couvertes in sorted(periodes, key=lambda p: -p[0]):
+        for nuit in couvertes:
+            if dans_horizon(nuit):
+                prix_par_nuit[nuit] = prix
+
+    donnees = {
+        "maj": aujourdhui.isoformat(),
+        "reserve": en_plages(a_venir),
+        "tarifs": en_plages_tarifs(prix_par_nuit),
+    }
     SORTIE.write_text(json.dumps(donnees, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-    print(f"{len(a_venir)} nuit(s) réservée(s) à venir, en {len(donnees['reserve'])} séjour(s).")
+    print(f"{len(a_venir)} nuit(s) réservée(s) à venir, en {len(donnees['reserve'])} séjour(s) ; "
+          f"{len(donnees['tarifs'])} période(s) de tarif particulier.")
     return 0
 
 

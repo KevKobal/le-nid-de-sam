@@ -331,7 +331,8 @@
 
   /* ---------- Infos pratiques ---------- */
   .infos { background: var(--surface); padding: 88px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-  .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 40px; }
+  .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px 40px; margin-top: 40px; }
+  @media (max-width: 960px) and (min-width: 761px) { .info-grid { grid-template-columns: 1fr 1fr; } }
   .info b { display: block; font-size: .95rem; color: var(--ink-soft); font-weight: 500; margin-bottom: 4px; }
   .info span { font-family: 'Playfair Display', serif; font-size: 1.35rem; }
   .info small { display: block; font-size: .95rem; color: var(--ink-soft); margin-top: 4px; }
@@ -364,9 +365,12 @@
   .mois abbr { text-decoration: none; }
   .mois td { padding: 2px; text-align: center; }
   .case {
-    display: grid; place-items: center; height: 42px; border-radius: 4px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 52px; border-radius: 4px; line-height: 1.15;
     font-size: .98rem; font-variant-numeric: tabular-nums;
   }
+  /* Prix de la nuit, sous la date (nuits libres uniquement) */
+  .case .prix { font-size: .74rem; color: var(--ink-soft); margin-top: 3px; white-space: nowrap; }
   .case.libre { background: var(--surface); border: 1px solid var(--line); }
   .case.pris {
     color: #8a7f72; text-decoration: line-through; text-decoration-color: var(--terra);
@@ -384,7 +388,9 @@
   @media (max-width: 760px) {
     .cal-mois { grid-template-columns: 1fr; }
     .mois:nth-child(2) { display: none; }
-    .case { height: 40px; }
+    .mois td { padding: 1.5px; }
+    .case { height: 48px; font-size: .92rem; }
+    .case .prix { font-size: .68rem; margin-top: 2px; }
   }
 
   /* ---------- Contact : texte à gauche, formulaire à droite ---------- */
@@ -424,6 +430,13 @@
   .choice small { color: var(--ink-soft); font-size: .92rem; }
   .form-card .btn-primary { width: 100%; margin-top: 28px; }
   .form-hint { margin-top: 12px; font-size: .92rem; color: var(--ink-soft); }
+  /* Estimation du séjour, sous les dates */
+  .estimation {
+    grid-column: 1 / -1; margin-top: -4px; padding: 12px 14px;
+    background: #f4ecdf; border-radius: var(--radius); font-size: .98rem;
+  }
+  .estimation b { font-weight: 700; }
+  .estimation .alerte { display: block; margin-top: 4px; color: var(--terra-dark); font-weight: 600; }
   @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } .form-card { padding: 24px 18px; } }
 
   footer {
@@ -471,7 +484,7 @@
      <div class="wrap">
       <h1>Une maison rien qu'à vous, au cœur de Golbey</h1>
       <p class="lede">Maison indépendante de plain-pied avec terrasse couverte et parking privé, à quelques pas de la Moselle, du port et des commerces. Le point de chute idéal pour découvrir Épinal et les Vosges.</p>
-      <p class="sh-facts"><span>2 voyageurs</span><span>1 chambre, lit double</span><span>Parking privé</span><span>Maison entière</span></p>
+      <p class="sh-facts"><span>Dès 60&nbsp;€ la nuit</span><span>2 voyageurs</span><span>1 chambre, lit double</span><span>Parking privé</span><span>Maison entière</span></p>
       <div class="cta-row">
         <a class="btn btn-primary" href="#contact">Réserver un séjour</a>
         <a class="link-light" href="#photos">Voir les photos</a>
@@ -644,8 +657,10 @@
     <div class="wrap">
       <h2 class="title reveal">Infos pratiques</h2>
       <div class="info-grid reveal">
+        <div class="info"><b>Tarifs</b><span>60&nbsp;€ la nuit</span><small>75&nbsp;€ les vendredis et samedis soir. Taxe de séjour comprise.</small></div>
+        <div class="info"><b>Arrivée et départ</b><span>Arrivée dès 16&nbsp;h</span><small>Départ avant 11&nbsp;h</small></div>
+        <div class="info"><b>Annulation</b><span>Non remboursable sous 48&nbsp;h</span><small>Une annulation moins de 48&nbsp;h avant l'arrivée n'est pas remboursée.</small></div>
         <div class="info"><b>Capacité</b><span>2 voyageurs</span><small>Maison entière, 1 chambre</small></div>
-        <div class="info"><b>Arrivée et départ</b><span>Horaires souples</span><small>À convenir ensemble lors de la réservation</small></div>
         <div class="info"><b>Emplacement</b><span>Golbey, Vosges</span><small>L'adresse exacte est communiquée à la réservation</small></div>
       </div>
       <ul class="regles reveal" aria-label="Règles de la maison">
@@ -675,8 +690,9 @@
         <div class="cal-mois" id="cal-mois" aria-live="polite"></div>
       </div>
       <p class="legende">
-        <span class="cle"><span class="case libre" aria-hidden="true">12</span> Nuit libre</span>
+        <span class="cle"><span class="case libre" aria-hidden="true">12</span> Nuit libre, avec son prix</span>
         <span class="cle"><span class="case pris" aria-hidden="true">12</span> Nuit réservée</span>
+        <span>Prix par nuit, taxe de séjour comprise.</span>
         <span id="cal-maj"></span>
       </p>
     </div>
@@ -719,6 +735,7 @@
             <label for="f-depart">Départ</label>
             <input id="f-depart" name="depart" type="date">
           </div>
+          <p class="estimation full" id="estimation" aria-live="polite" hidden></p>
           <div class="field full">
             <label for="f-voyageurs">Voyageurs</label>
             <select id="f-voyageurs" name="voyageurs">
@@ -729,8 +746,8 @@
           <div class="field full" role="group" aria-labelledby="lbl-coffrets">
             <span class="label" id="lbl-coffrets">Coffrets en option</span>
             <div class="choice-row">
-              <label class="choice"><input type="checkbox" name="coffret" value="Pack LOVE (+49 €)"><span><b>Pack LOVE</b> <small>+49&nbsp;€</small></span></label>
-              <label class="choice"><input type="checkbox" name="coffret" value="Coffret Vosgien (+29 €)"><span><b>Coffret Vosgien</b> <small>+29&nbsp;€</small></span></label>
+              <label class="choice"><input type="checkbox" name="coffret" value="Pack LOVE (+49 €)" data-prix="49"><span><b>Pack LOVE</b> <small>+49&nbsp;€</small></span></label>
+              <label class="choice"><input type="checkbox" name="coffret" value="Coffret Vosgien (+29 €)" data-prix="29"><span><b>Coffret Vosgien</b> <small>+29&nbsp;€</small></span></label>
             </div>
           </div>
           <div class="field full">
@@ -760,6 +777,26 @@
 
 <script>
   /* ═══════════════════════════════════════════════════════════════════
+     PRIX DES NUITS — à modifier ici si les tarifs de base changent
+
+     Taxe de séjour comprise. Le week-end = les nuits du vendredi et du
+     samedi. Pour une période particulière (vacances, fêtes…), le
+     propriétaire crée dans l'agenda un évènement « Tarif 95 » : il
+     remplace ces prix sur les nuits concernées (voir le README).
+     ═══════════════════════════════════════════════════════════════════ */
+  const TARIF_SEMAINE = 60;
+  const TARIF_WEEKEND = 75;
+
+  // Dates manipulées en heure locale, au format AAAA-MM-JJ
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const depuisIso = (s) => { const [a, m, j] = s.split('-').map(Number); return new Date(a, m - 1, j); };
+
+  // Nuits réservées et tarifs particuliers, remplis depuis dispos.json
+  const dispos = { reserve: new Set(), tarifs: new Map() };
+  const prixNuit = (d) => dispos.tarifs.get(iso(d)) ??
+    (d.getDay() === 5 || d.getDay() === 6 ? TARIF_WEEKEND : TARIF_SEMAINE);
+
+  /* ═══════════════════════════════════════════════════════════════════
      CALENDRIER DES DISPONIBILITÉS
 
      Rien à modifier ici : les nuits réservées sont lues dans dispos.json,
@@ -782,15 +819,12 @@
     const prec = document.getElementById('cal-prev');
     const suiv = document.getElementById('cal-next');
 
-    // Dates manipulées en heure locale, au format AAAA-MM-JJ
-    const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    const depuisIso = (s) => { const [a, m, j] = s.split('-').map(Number); return new Date(a, m - 1, j); };
     const aujourdhui = new Date(); aujourdhui.setHours(0, 0, 0, 0);
     const cleAujourdhui = iso(aujourdhui);
     const nomMois = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
     const JOURS = [['L', 'lundi'], ['M', 'mardi'], ['M', 'mercredi'], ['J', 'jeudi'], ['V', 'vendredi'], ['S', 'samedi'], ['D', 'dimanche']];
 
-    let reserve = new Set();
+    const reserve = dispos.reserve;
     let decalage = 0;             // nombre de mois après le mois en cours
 
     const tableMois = (annee, mois) => {
@@ -810,7 +844,8 @@
         const classes = ['case', passe ? 'passe' : pris ? 'pris' : 'libre', cle === cleAujourdhui ? 'aujourdhui' : ''].join(' ').trim();
         // Texte lu par les lecteurs d'écran seulement : l'état ne passe pas que par la couleur
         const etat = pris ? '<span class="vh"> : nuit réservée</span>' : '';
-        html += `<td><span class="${classes}">${j}${etat}</span></td>`;
+        const prix = !passe && !pris ? `<span class="prix">${prixNuit(jour)}&nbsp;€</span>` : '';
+        html += `<td><span class="${classes}"><span class="num">${j}</span>${etat}${prix}</span></td>`;
         if ((vides + j) % 7 === 0 && j < nbJours) html += '</tr><tr>';
       }
       html += '<td></td>'.repeat((7 - (vides + nbJours) % 7) % 7) + '</tr></tbody>';
@@ -833,15 +868,18 @@
       .then(donnees => {
         const maj = depuisIso(donnees.maj);
         if ((aujourdhui - maj) / 864e5 > PERIME_JOURS) return;   // données trop anciennes : on n'affiche rien
-        reserve = new Set();
         for (const [debut, fin] of donnees.reserve || []) {
           for (let d = depuisIso(debut); d < depuisIso(fin); d.setDate(d.getDate() + 1)) reserve.add(iso(d));
+        }
+        for (const [debut, fin, prix] of donnees.tarifs || []) {
+          for (let d = depuisIso(debut); d < depuisIso(fin); d.setDate(d.getDate() + 1)) dispos.tarifs.set(iso(d), prix);
         }
         document.getElementById('cal-maj').textContent =
           `Mis à jour le ${maj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}. Les disponibilités restent à confirmer lors de votre demande.`;
         afficher();
         section.hidden = false;
         lien.hidden = false;
+        document.dispatchEvent(new Event('dispos-chargees'));   // le formulaire recalcule son estimation
       })
       .catch(() => { /* pas de données : la section reste masquée */ });
   })();
@@ -948,11 +986,57 @@
   const DESTINATAIRE = ['leniddesam', 'gmail.com'].join('@');
   const form = document.getElementById('booking-form');
   const fmtDate = (v) => v ? new Date(v + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : null;
+
+  // Estimation du séjour : prix de chaque nuit (mêmes règles que le calendrier)
+  // + coffrets cochés. Signale aussi les nuits déjà réservées.
+  const champArrivee = document.getElementById('f-arrivee');
+  const champDepart = document.getElementById('f-depart');
+  const zoneEstimation = document.getElementById('estimation');
+  const euros = (n) => `${n.toLocaleString('fr-FR')} €`;
+  const estimer = () => {
+    const a = champArrivee.value, dep = champDepart.value;
+    if (!a || !dep) return null;
+    const debut = depuisIso(a), fin = depuisIso(dep);
+    if (fin <= debut) return { erreur: 'La date de départ doit être après la date d’arrivée.' };
+    let nuits = 0, sejour = 0; const prises = [];
+    for (let d = new Date(debut); d < fin; d.setDate(d.getDate() + 1)) {
+      nuits++; sejour += prixNuit(d);
+      if (dispos.reserve.has(iso(d))) prises.push(d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }));
+    }
+    const coffrets = [...form.querySelectorAll('input[name="coffret"]:checked')].reduce((s, c) => s + Number(c.dataset.prix || 0), 0);
+    return { nuits, sejour, coffrets, total: sejour + coffrets, prises };
+  };
+  const majEstimation = () => {
+    // Le départ ne peut pas précéder le lendemain de l'arrivée
+    if (champArrivee.value) {
+      const lendemain = depuisIso(champArrivee.value); lendemain.setDate(lendemain.getDate() + 1);
+      champDepart.min = iso(lendemain);
+    }
+    const e = estimer();
+    zoneEstimation.hidden = !e;
+    if (!e) return;
+    if (e.erreur) { zoneEstimation.innerHTML = `<span class="alerte">${e.erreur}</span>`; return; }
+    let texte = `Estimation : <b>${e.nuits} nuit${e.nuits > 1 ? 's' : ''}, ${euros(e.sejour)}</b>`;
+    if (e.coffrets) texte += ` + coffrets ${euros(e.coffrets)} = <b>${euros(e.total)}</b>`;
+    texte += ', taxe de séjour comprise.';
+    if (e.prises.length) {
+      const liste = e.prises.length > 1 ? `${e.prises.slice(0, -1).join(', du ')} et du ${e.prises.at(-1)}` : e.prises[0];
+      texte += `<span class="alerte">Attention : ${e.prises.length > 1 ? 'les nuits' : 'la nuit'} du ${liste} ${e.prises.length > 1 ? 'sont déjà réservées' : 'est déjà réservée'}.</span>`;
+    }
+    zoneEstimation.innerHTML = texte;
+  };
+  champArrivee.min = iso(new Date());
+  champDepart.min = iso(new Date());
+  [champArrivee, champDepart].forEach(c => c.addEventListener('change', majEstimation));
+  form.querySelectorAll('input[name="coffret"]').forEach(c => c.addEventListener('change', majEstimation));
+  document.addEventListener('dispos-chargees', majEstimation);
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const d = new FormData(form);
     const demande = d.get('demande');
     const coffrets = d.getAll('coffret');
+    const est = estimer();
     const lignes = [
       'Bonjour,', '',
       `Demande : ${demande}`,
@@ -963,6 +1047,7 @@
       fmtDate(d.get('depart')) ? `Départ : ${fmtDate(d.get('depart'))}` : null,
       `Voyageurs : ${d.get('voyageurs')}`,
       coffrets.length ? `Coffrets : ${coffrets.join(' + ')}` : null,
+      est && !est.erreur ? `Estimation affichée sur le site : ${est.nuits} nuit(s), ${euros(est.total)} au total (taxe de séjour comprise)` : null,
       d.get('message') ? `\nMessage :\n${d.get('message')}` : null,
       '', 'Merci !'
     ].filter(l => l !== null);
