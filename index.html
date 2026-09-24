@@ -115,21 +115,19 @@
     will-change: clip-path;
   }
   .sh-media img {
-    /* --shift décale l'image vers la droite quand elle est réduite, pour que la
-       vignette cadre sur la terrasse plutôt que sur le mur.
-       Il revient à 0 en s'ouvrant. Plafonné : au-delà, un vide apparaîtrait
-       sur le bord gauche de la vignette (d'où le 0 sur petits écrans, où la
-       vignette occupe déjà 74% de la largeur). */
-    /* Photo maison.jpg : la terrasse et son salon de jardin sont sur le tiers
-       gauche. 28% reste sous la limite (~31% à 901 px de large) au-delà de
-       laquelle le bord gauche de l'image entrerait dans la vignette. */
-    --shift: 28%;
+    /* --shift décale l'image quand elle est réduite, pour que la vignette
+       cadre sur la porte d'entrée (vers 81 % de la largeur de maison.jpg).
+       Il revient à 0 en s'ouvrant. Valeur négative = image poussée vers la
+       gauche. -34 % centre la porte ; la limite au-delà de laquelle le bord
+       droit de l'image entrerait dans la vignette est d'environ -37 % (à
+       901 px de large). Sur petits écrans, c'est object-position qui cadre. */
+    --shift: -34%;
     width: 100%; height: 100%; object-fit: cover; object-position: 34% 62%;
     transform: translateX(calc(var(--shift) * (1 - var(--p)))) scale(calc(1.12 - .12 * var(--p)));
   }
-  /* Écrans étroits : l'image déborde en largeur, on cadre sur la terrasse
-     (16 % depuis la gauche) plutôt que sur le mur */
-  @media (max-width: 900px) { .sh-media img { --shift: 0%; object-position: 16% 62%; } }
+  /* Écrans étroits : l'image déborde en largeur, on cadre sur la porte
+     d'entrée, dans la partie droite de la photo */
+  @media (max-width: 900px) { .sh-media img { --shift: 0%; object-position: 95% 62%; } }
   .sh-media::after {
     content: ""; position: absolute; inset: 0;
     background: linear-gradient(to top, rgba(24, 20, 15, .86) 0%, rgba(24, 20, 15, .55) 30%, rgba(24, 20, 15, .12) 58%, rgba(24, 20, 15, .28) 100%);
