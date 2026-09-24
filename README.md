@@ -15,29 +15,56 @@ Publié via GitHub Pages — voir le lien dans la description du dépôt.
 |---|---|
 | `index.html` | tout le site : structure, styles et scripts |
 | `img/` | photos optimisées pour le web |
+| `dispos.json` | nuits réservées, généré automatiquement (ne pas modifier à la main) |
+| `scripts/maj_dispos.py` | lit l'agenda et produit `dispos.json` |
+| `.github/workflows/dispos.yml` | lance ce script toutes les heures |
 
-## Modifier le calendrier des disponibilités
+## Calendrier des disponibilités
 
-Le calendrier affiché sur le site est l'agenda Google « Le Nid de Sam ».
-Les dates se bloquent directement depuis l'application Google Agenda, sans
-toucher au site.
+### Noter une réservation (propriétaire)
 
-L'agenda utilisé est défini par une seule ligne au début du `<script>`, à la fin
-de `index.html` :
+Dans Google Agenda, sur téléphone ou ordinateur, créer un évènement **dans
+l'agenda « Le Nid de Sam »** (et pas dans l'agenda personnel, qui est choisi
+par défaut : vérifier la ligne de l'agenda avant d'enregistrer).
 
-```js
-const AGENDA_ID = '...@group.calendar.google.com';
-```
+- **Toute la journée**, du **jour d'arrivée au jour de départ**. Exemple :
+  arrivée le 3, départ le 6 → nuits du 3, 4 et 5 bloquées, le 6 reste libre
+  pour une nouvelle arrivée.
+- Ou avec des horaires (arrivée 15 h, départ 11 h) : même résultat.
+- Le titre peut contenir le nom du client : **seules les dates** sont publiées.
 
-Si cette ligne est vide, la section « Disponibilités » et son lien de menu
-disparaissent automatiquement du site.
+Le site se met à jour dans l'heure. Supprimer l'évènement libère les dates.
 
-Deux points de vigilance :
+### Fonctionnement
 
-- l'agenda doit être **public** (réglage à faire depuis un ordinateur,
-  impossible depuis l'application mobile) ;
-- les évènements doivent s'intituler uniquement « **Réservé** » : tout ce qui
-  est écrit dans le titre est potentiellement visible publiquement.
+Toutes les heures, la tâche GitHub « Disponibilités » lit l'agenda par son
+**adresse secrète au format iCal**, ne garde que les dates et écrit
+`dispos.json`. La page lit ce fichier et affiche son propre calendrier.
+
+- L'adresse secrète est stockée dans le secret **`ICAL_URLS`** du dépôt
+  (Settings → Secrets and variables → Actions). Elle n'apparaît ni dans le
+  code ni dans les journaux. Plusieurs adresses possibles, séparées par des
+  espaces (par exemple Airbnb et Booking plus tard).
+- L'agenda Google n'a **pas besoin d'être public**.
+- Si un agenda est illisible, `dispos.json` n'est pas modifié (jamais de
+  données partielles). La tâche apparaît alors en échec dans l'onglet Actions.
+- Le site masque le calendrier si `dispos.json` n'existe pas ou date de plus
+  de 7 jours, plutôt que d'afficher des dates périmées.
+- Lancer une mise à jour immédiate : onglet **Actions** → « Disponibilités »
+  → **Run workflow**.
+
+### Brancher l'agenda (une seule fois, sur ordinateur)
+
+1. Google Agenda → ⚙️ Paramètres → dans la colonne de gauche, l'agenda
+   « Le Nid de Sam » → section « Intégrer l'agenda » → copier l'**adresse
+   secrète au format iCal** (elle se termine par `basic.ics`).
+2. GitHub → dépôt `le-nid-de-sam` → Settings → Secrets and variables →
+   Actions → **New repository secret** → nom `ICAL_URLS`, valeur : l'adresse
+   copiée.
+3. Onglet Actions → « Disponibilités » → Run workflow.
+
+Si l'adresse secrète a fuité : dans Google Agenda, « Réinitialiser » à côté de
+l'adresse secrète, puis remplacer la valeur du secret `ICAL_URLS`.
 
 ## Demandes de réservation
 

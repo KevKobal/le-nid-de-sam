@@ -1,0 +1,50 @@
+# Met à jour dispos.json (les nuits réservées affichées sur le site) à partir
+# de l'agenda « Le Nid de Sam ».
+#
+# L'adresse secrète de l'agenda est lue dans le secret ICAL_URLS du dépôt
+# (Settings → Secrets and variables → Actions). Plusieurs adresses possibles,
+# séparées par des espaces : agenda Google, puis plus tard Airbnb, Booking…
+#
+# dispos.json contient la date du jour : il change au moins une fois par jour,
+# ce qui maintient le dépôt actif (GitHub suspend les tâches planifiées d'un
+# dépôt public resté 60 jours sans activité).
+
+name: Disponibilités
+
+on:
+  schedule:
+    - cron: "17 * * * *"   # toutes les heures, à la 17e minute
+  workflow_dispatch:         # bouton « Run workflow » pour lancer à la main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dispos
+  cancel-in-progress: false
+
+jobs:
+  maj:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lire l'agenda et calculer les nuits réservées
+        env:
+          ICAL_URLS: ${{ secrets.ICAL_URLS }}
+        run: python3 scripts/maj_dispos.py
+
+      - name: Publier dispos.json s'il a changé
+        run: |
+          if [ -n "$(git status --porcelain -- dispos.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add dispos.json
+            git commit -m "Disponibilités mises à jour"
+            # Si le site a été modifié entre-temps, on se remet à jour avant d'envoyer
+            git pull --rebase --quiet
+            git push
+          else
+            echo "Aucun changement."
+          fi

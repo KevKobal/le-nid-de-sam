@@ -342,10 +342,50 @@
 
   /* ---------- Disponibilités ---------- */
   .dispos { padding: 104px 0 0; }
-  .agenda-carte { margin-top: 36px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 8px; }
-  .agenda-carte iframe { width: 100%; height: 560px; border: 0; display: block; }
-  @media (max-width: 700px) { .agenda-carte iframe { height: 460px; } }
-  .dispos .legende { margin-top: 14px; font-size: .92rem; color: var(--ink-soft); }
+  .dispos-head .lead { margin-top: 14px; }
+  .cal { position: relative; margin-top: 40px; }
+  /* Flèches alignées sur la ligne des noms de mois */
+  .cal-nav { position: absolute; top: -6px; right: 0; display: flex; gap: 8px; }
+  .cal-btn {
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid #d9ccb9;
+    background: var(--surface); color: var(--ink); font-size: 1.5rem; line-height: 1;
+    cursor: pointer; display: grid; place-items: center; padding-bottom: 3px;
+  }
+  .cal-btn:hover:not(:disabled) { border-color: var(--wood-dark); }
+  .cal-btn:disabled { opacity: .35; cursor: default; }
+  .cal-btn:focus-visible { outline: 3px solid var(--terra); outline-offset: 2px; }
+  .cal-mois { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+  .mois { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .mois caption {
+    text-align: left; font-family: 'Playfair Display', serif; font-size: 1.35rem;
+    padding: 0 0 16px; text-transform: capitalize;
+  }
+  .mois th { font-size: .85rem; font-weight: 600; color: var(--ink-soft); padding-bottom: 8px; }
+  .mois abbr { text-decoration: none; }
+  .mois td { padding: 2px; text-align: center; }
+  .case {
+    display: grid; place-items: center; height: 42px; border-radius: 4px;
+    font-size: .98rem; font-variant-numeric: tabular-nums;
+  }
+  .case.libre { background: var(--surface); border: 1px solid var(--line); }
+  .case.pris {
+    color: #8a7f72; text-decoration: line-through; text-decoration-color: var(--terra);
+    background: repeating-linear-gradient(135deg, #efe6d8 0 5px, #e6dac8 5px 10px);
+  }
+  .case.passe { color: #b3a898; }
+  .case.aujourdhui { box-shadow: inset 0 0 0 2px var(--wood-dark); font-weight: 700; }
+  .dispos .legende {
+    margin-top: 20px; font-size: .92rem; color: var(--ink-soft);
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px;
+  }
+  .cle { display: inline-flex; align-items: center; gap: 8px; }
+  .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .cle .case { width: 34px; height: 30px; font-size: .85rem; }
+  @media (max-width: 760px) {
+    .cal-mois { grid-template-columns: 1fr; }
+    .mois:nth-child(2) { display: none; }
+    .case { height: 40px; }
+  }
 
   /* ---------- Contact : texte à gauche, formulaire à droite ---------- */
   .contact { padding: 112px 0 120px; }
@@ -617,18 +657,28 @@
   </section>
 
   <!-- ======= DISPONIBILITÉS =======
-       Cette section reste masquée tant qu'aucun agenda n'est renseigné
-       (voir AGENDA_ID en haut du script, tout en bas de la page). -->
+       Les nuits réservées viennent de dispos.json, mis à jour toutes les heures
+       par une tâche GitHub à partir de l'agenda « Le Nid de Sam » (voir le
+       README). La section reste masquée tant que ce fichier n'existe pas, ou
+       s'il n'a pas été mis à jour depuis plus de 7 jours. -->
   <section id="disponibilites" class="dispos" hidden>
     <div class="wrap">
-      <div class="reveal">
+      <div class="dispos-head">
         <h2 class="title">Les dates encore libres</h2>
-        <p class="lead" style="margin-top: 14px;">Les périodes déjà réservées apparaissent dans le calendrier ci-dessous. Repérez vos dates, puis envoyez votre demande : nous vous confirmons tout par retour.</p>
+        <p class="lead">Les nuits déjà réservées sont barrées. Repérez vos dates, puis envoyez votre demande : nous vous confirmons tout par retour.</p>
       </div>
-      <div class="agenda-carte reveal">
-        <iframe id="agenda-iframe" title="Calendrier des disponibilités du Nid de Sam" loading="lazy"></iframe>
+      <div class="cal">
+        <div class="cal-nav">
+          <button class="cal-btn" type="button" id="cal-prev" aria-label="Mois précédent">‹</button>
+          <button class="cal-btn" type="button" id="cal-next" aria-label="Mois suivant">›</button>
+        </div>
+        <div class="cal-mois" id="cal-mois" aria-live="polite"></div>
       </div>
-      <p class="legende">Calendrier mis à jour en direct par le propriétaire. Les disponibilités restent à confirmer lors de votre demande.</p>
+      <p class="legende">
+        <span class="cle"><span class="case libre" aria-hidden="true">12</span> Nuit libre</span>
+        <span class="cle"><span class="case pris" aria-hidden="true">12</span> Nuit réservée</span>
+        <span id="cal-maj"></span>
+      </p>
     </div>
   </section>
 
@@ -710,34 +760,90 @@
 
 <script>
   /* ═══════════════════════════════════════════════════════════════════
-     CALENDRIER DES DISPONIBILITÉS — la seule ligne à modifier
+     CALENDRIER DES DISPONIBILITÉS
 
-     Collez ici l'identifiant de l'agenda Google, entre les guillemets.
-     Il ressemble à :  a1b2c3d4e5f6@group.calendar.google.com
-     Tant que la ligne reste vide, la section « Disponibilités » et son
-     lien de menu n'apparaissent pas sur le site.
+     Rien à modifier ici : les nuits réservées sont lues dans dispos.json,
+     que la tâche GitHub « Disponibilités » met à jour toutes les heures à
+     partir de l'agenda Google « Le Nid de Sam » (voir le README).
+     En ligne, le fichier est lu directement sur GitHub (à jour à 5 min
+     près, sans attendre la republication du site) ; en local, à côté de
+     la page.
      ═══════════════════════════════════════════════════════════════════ */
-  const AGENDA_ID = '6f457dc5e291303a514794c7bf1a1250cdabaddd1aca3b127147487893eaa8b6@group.calendar.google.com';
-
-  // Affiche le calendrier uniquement si un agenda est renseigné
   (() => {
+    const SOURCE = location.hostname.endsWith('github.io')
+      ? 'https://raw.githubusercontent.com/KevKobal/le-nid-de-sam/main/dispos.json'
+      : 'dispos.json';
+    const MOIS_MAX = 17;          // on peut feuilleter jusqu'à 17 mois après le mois en cours
+    const PERIME_JOURS = 7;       // au-delà, les données sont jugées trop anciennes pour être affichées
+
     const section = document.getElementById('disponibilites');
     const lien = document.getElementById('lien-dispos');
-    if (!AGENDA_ID.trim()) return;               // rien de configuré : on laisse masqué
-    const options = new URLSearchParams({
-      src: AGENDA_ID.trim(),
-      ctz: 'Europe/Paris',
-      mode: 'MONTH',
-      wkst: '2',            // la semaine commence le lundi
-      hl: 'fr',
-      showTitle: '0', showNav: '1', showDate: '1',
-      showPrint: '0', showTabs: '0', showCalendars: '0', showTz: '0',
-      bgcolor: '#FFFFFF'
-    });
-    document.getElementById('agenda-iframe').src =
-      'https://calendar.google.com/calendar/embed?' + options.toString();
-    section.hidden = false;
-    lien.hidden = false;
+    const zone = document.getElementById('cal-mois');
+    const prec = document.getElementById('cal-prev');
+    const suiv = document.getElementById('cal-next');
+
+    // Dates manipulées en heure locale, au format AAAA-MM-JJ
+    const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const depuisIso = (s) => { const [a, m, j] = s.split('-').map(Number); return new Date(a, m - 1, j); };
+    const aujourdhui = new Date(); aujourdhui.setHours(0, 0, 0, 0);
+    const cleAujourdhui = iso(aujourdhui);
+    const nomMois = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
+    const JOURS = [['L', 'lundi'], ['M', 'mardi'], ['M', 'mercredi'], ['J', 'jeudi'], ['V', 'vendredi'], ['S', 'samedi'], ['D', 'dimanche']];
+
+    let reserve = new Set();
+    let decalage = 0;             // nombre de mois après le mois en cours
+
+    const tableMois = (annee, mois) => {
+      const table = document.createElement('table');
+      table.className = 'mois';
+      const premier = new Date(annee, mois, 1);
+      let html = `<caption>${nomMois.format(premier)}</caption><thead><tr>` +
+        JOURS.map(([c, l]) => `<th scope="col"><abbr title="${l}">${c}</abbr></th>`).join('') + '</tr></thead><tbody><tr>';
+      const vides = (premier.getDay() + 6) % 7;   // la semaine commence le lundi
+      html += '<td></td>'.repeat(vides);
+      const nbJours = new Date(annee, mois + 1, 0).getDate();
+      for (let j = 1; j <= nbJours; j++) {
+        const jour = new Date(annee, mois, j);
+        const cle = iso(jour);
+        const passe = jour < aujourdhui;
+        const pris = !passe && reserve.has(cle);
+        const classes = ['case', passe ? 'passe' : pris ? 'pris' : 'libre', cle === cleAujourdhui ? 'aujourdhui' : ''].join(' ').trim();
+        // Texte lu par les lecteurs d'écran seulement : l'état ne passe pas que par la couleur
+        const etat = pris ? '<span class="vh"> : nuit réservée</span>' : '';
+        html += `<td><span class="${classes}">${j}${etat}</span></td>`;
+        if ((vides + j) % 7 === 0 && j < nbJours) html += '</tr><tr>';
+      }
+      html += '<td></td>'.repeat((7 - (vides + nbJours) % 7) % 7) + '</tr></tbody>';
+      table.innerHTML = html;
+      return table;
+    };
+
+    const afficher = () => {
+      const base = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth() + decalage, 1);
+      const suivant = new Date(base.getFullYear(), base.getMonth() + 1, 1);
+      zone.replaceChildren(tableMois(base.getFullYear(), base.getMonth()), tableMois(suivant.getFullYear(), suivant.getMonth()));
+      prec.disabled = decalage === 0;
+      suiv.disabled = decalage >= MOIS_MAX;
+    };
+    prec.addEventListener('click', () => { decalage = Math.max(0, decalage - 1); afficher(); });
+    suiv.addEventListener('click', () => { decalage = Math.min(MOIS_MAX, decalage + 1); afficher(); });
+
+    fetch(SOURCE, { cache: 'no-cache' })
+      .then(r => r.ok ? r.json() : Promise.reject(new Error('dispos.json absent')))
+      .then(donnees => {
+        const maj = depuisIso(donnees.maj);
+        if ((aujourdhui - maj) / 864e5 > PERIME_JOURS) return;   // données trop anciennes : on n'affiche rien
+        reserve = new Set();
+        for (const [debut, fin] of donnees.reserve || []) {
+          for (let d = depuisIso(debut); d < depuisIso(fin); d.setDate(d.getDate() + 1)) reserve.add(iso(d));
+        }
+        document.getElementById('cal-maj').textContent =
+          `Mis à jour le ${maj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}. Les disponibilités restent à confirmer lors de votre demande.`;
+        afficher();
+        section.hidden = false;
+        lien.hidden = false;
+      })
+      .catch(() => { /* pas de données : la section reste masquée */ });
   })();
 
   // Hero : la photo s'ouvre au fil du défilement, et fond du menu

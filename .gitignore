@@ -24,3 +24,6 @@ niddesam.mp4
 # Configuration locale de l'éditeur : contient des chemins propres à la machine
 # (dossier de prévisualisation), sans intérêt pour le site publié.
 .claude/
+
+# Cache Python
+__pycache__/
