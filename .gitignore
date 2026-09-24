@@ -3,6 +3,11 @@
 IMG_*.jpeg
 IMG_*.JPEG
 IMG_*.jpg
+# Photos iPhone au format HEIC : illisibles par la plupart des navigateurs et
+# porteuses de la position GPS. Seules les versions JPEG converties (sans
+# métadonnées) du dossier img/ sont publiées.
+*.heic
+*.HEIC
 # Original haute résolution de la photo Moselle (~26 Mo) : seule img/moselle.jpg
 # (optimisée) est publiée.
 img/paysage moselle.JPG
