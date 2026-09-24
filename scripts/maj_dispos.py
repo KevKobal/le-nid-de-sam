@@ -5,7 +5,7 @@ Lancé toutes les heures par la tâche GitHub .github/workflows/dispos.yml.
 
 Les adresses des agendas sont lues dans la variable d'environnement ICAL_URLS
 (séparées par des espaces ou des retours à la ligne), alimentée par le secret
-CALENDRIER du dépôt. Ce sont des adresses
+ICAL_URLS du dépôt. Ce sont des adresses
 secrètes : elles sont stockées dans les « secrets » GitHub du dépôt et ne
 doivent jamais apparaître dans le code ni dans les journaux.
 
@@ -135,7 +135,7 @@ def en_plages(nuits: list[date]) -> list[list[str]]:
 def main() -> int:
     urls = os.environ.get("ICAL_URLS", "").split()
     if not urls:
-        print("Aucune adresse d'agenda (secret CALENDRIER du dépôt) : dispos.json n'est pas modifié.")
+        print("Aucune adresse d'agenda (secret ICAL_URLS du dépôt) : dispos.json n'est pas modifié.")
         return 0
 
     nuits: set[date] = set()
