@@ -8,40 +8,47 @@
 <!-- APERÇU PRIVÉ : empêche l'indexation par les moteurs de recherche.
      À SUPPRIMER lors de la mise en ligne définitive du site. -->
 <meta name="robots" content="noindex, nofollow">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23a07c4f'/><path d='M7 15.2 16 8l9 7.2' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/><path d='M9.6 14.6V24h12.8v-9.4' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2324282b'/><path d='M7 15.2 16 8l9 7.2' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/><path d='M9.6 14.6V24h12.8v-9.4' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Karla:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
 <!-- Signale que JavaScript tourne : les apparitions au défilement ne masquent
      le contenu que dans ce cas. Sans JS, tout reste visible. -->
 <script>document.documentElement.classList.add('js');</script>
 <style>
   :root {
-    --bg: #fbf8f3;
+    /* Piste « Ardoise & chêne » : couleurs tirées de la maison elle-même
+       (murs blancs, façades anthracite de la cuisine, chêne, tuile du toit) */
+    --bg: #fafaf8;
     --surface: #ffffff;
-    --ink: #2a2420;
-    --ink-soft: #62584c;
-    --wood: #a07c4f;
-    --wood-dark: #79592f;
-    --terra: #b8583a;
-    --terra-dark: #9c4629;
-    --night: #2b2420;
-    --night-ink: #f3ece2;
-    --night-soft: #cdbfad;
-    --line: #e6dccd;
+    --ink: #1e2225;
+    --ink-soft: #585e63;
+    --wood: #a0743f;          /* chêne */
+    --wood-dark: #7a5629;
+    --terra: #a8452a;         /* tuile du toit : bouton principal */
+    --terra-dark: #8e3920;
+    --night: #24282b;         /* anthracite : bandes sombres */
+    --night-ink: #f1f0ed;
+    --night-soft: #b9bcbd;
+    --nuit-accent: #d1a36a;   /* chêne clair, lisible sur l'anthracite */
+    --line: #e1e2df;
+    --champ: #cfd2d0;         /* bordure des champs et boutons ronds */
+    --teinte: #f3efe8;        /* fond d'un choix coché, de l'estimation */
     --radius: 6px;
+    --police-titre: 'Newsreader', Georgia, serif;
+    --police-texte: 'Hanken Grotesk', system-ui, sans-serif;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
-    font-family: 'Karla', system-ui, sans-serif;
+    font-family: var(--police-texte);
     background: var(--bg);
     color: var(--ink);
     font-size: 17px;
     line-height: 1.65;
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif; font-weight: 500; line-height: 1.15; }
+  h1, h2, h3 { font-family: var(--police-titre); font-weight: 500; line-height: 1.12; letter-spacing: -.01em; }
   img { max-width: 100%; display: block; }
   a { color: inherit; }
   .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
@@ -60,8 +67,8 @@
     box-shadow: 0 1px 0 var(--line);
     padding: 12px 28px;
   }
-  .brand { font-family: 'Playfair Display', serif; font-size: 1.3rem; text-decoration: none; line-height: 1.2; }
-  .brand small { display: block; font-family: 'Karla', sans-serif; font-size: .8rem; opacity: .85; }
+  .brand { font-family: var(--police-titre); font-size: 1.3rem; text-decoration: none; line-height: 1.2; }
+  .brand small { display: block; font-family: var(--police-texte); font-size: .8rem; opacity: .85; }
   nav.links { display: flex; gap: 28px; }
   nav.links a {
     text-decoration: none; font-size: .98rem; font-weight: 500;
@@ -88,14 +95,14 @@
   /* Voile sombre en haut : garantit la lisibilité du menu à toutes les étapes */
   .sh-stage::before {
     content: ""; position: absolute; top: 0; left: 0; right: 0; height: 190px; z-index: 2;
-    background: linear-gradient(to bottom, rgba(20, 16, 12, .58), transparent);
+    background: linear-gradient(to bottom, rgba(14, 16, 17, .58), transparent);
     pointer-events: none;
   }
   /* Fond d'accueil : vidéo du paysage (remplace l'ancien flou).
      S'efface au fil du défilement, comme le faisait le flou (opacity 1 - p). */
   .sh-bg {
     position: absolute; inset: 0; z-index: 0; overflow: hidden;
-    background: #14100c url('img/paysage-poster.jpg') center / cover no-repeat;
+    background: #121415 url('img/paysage-poster.jpg') center / cover no-repeat;
     /* L'assombrissement est posé ici, sur le conteneur : il s'applique donc de
        façon identique à l'image de repli (poster = 1re image de la vidéo) ET à
        la vidéo. Si la vidéo ne se lance pas, le repli est exactement cette
@@ -130,13 +137,13 @@
   @media (max-width: 900px) { .sh-media img { --shift: 0%; object-position: 95% 62%; } }
   .sh-media::after {
     content: ""; position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(24, 20, 15, .86) 0%, rgba(24, 20, 15, .55) 30%, rgba(24, 20, 15, .12) 58%, rgba(24, 20, 15, .28) 100%);
+    background: linear-gradient(to top, rgba(16, 18, 19, .86) 0%, rgba(16, 18, 19, .55) 30%, rgba(16, 18, 19, .12) 58%, rgba(16, 18, 19, .28) 100%);
     opacity: var(--p);
   }
   /* Le texte occupe plus de hauteur sur mobile : voile plus soutenu */
   @media (max-width: 760px) {
     .sh-media::after {
-      background: linear-gradient(to top, rgba(24, 20, 15, .9) 0%, rgba(24, 20, 15, .72) 40%, rgba(24, 20, 15, .25) 70%, rgba(24, 20, 15, .3) 100%);
+      background: linear-gradient(to top, rgba(16, 18, 19, .9) 0%, rgba(16, 18, 19, .72) 40%, rgba(16, 18, 19, .25) 70%, rgba(16, 18, 19, .3) 100%);
     }
   }
   /* Le nom de la maison, scindé en deux moitiés qui s'écartent */
@@ -148,13 +155,13 @@
     opacity: clamp(0, calc(1 - (var(--p) - .58) * 2.6), 1);
   }
   .sh-titles span {
-    font-family: 'Playfair Display', Georgia, serif; font-weight: 500;
+    font-family: var(--police-titre); font-weight: 500;
     font-size: clamp(2.1rem, 6.6vw, 5rem); line-height: 1; white-space: nowrap;
     text-shadow: 0 2px 30px rgba(0, 0, 0, .5);
   }
   .sh-hint {
     position: absolute; z-index: 3; left: 0; right: 0; bottom: 34px; text-align: center;
-    font-size: .92rem; color: #efe3d0; opacity: clamp(0, calc(1 - var(--p) * 3.4), 1);
+    font-size: .92rem; color: #ebeae6; opacity: clamp(0, calc(1 - var(--p) * 3.4), 1);
   }
   .sh-hint svg { width: 18px; height: 18px; margin: 8px auto 0; animation: shBob 2.2s ease-in-out infinite; }
   @keyframes shBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
@@ -166,10 +173,10 @@
     transform: translateY(calc(26px * (1 - var(--in))));
   }
   .sh-copy h1 { font-size: clamp(2rem, 4.8vw, 3.4rem); max-width: 16ch; text-wrap: balance; }
-  .sh-copy p.lede { margin-top: 16px; max-width: 50ch; font-size: 1.08rem; color: #f2ece2; }
+  .sh-copy p.lede { margin-top: 16px; max-width: 50ch; font-size: 1.08rem; color: #f1f0ed; }
   @media (max-width: 760px) { .sh-copy p.lede { display: none; } }
   /* Les points clés en une ligne de texte, séparés par des points médians */
-  .sh-facts { margin-top: 18px; font-size: 1rem; color: #efe3d0; display: flex; flex-wrap: wrap; row-gap: 2px; }
+  .sh-facts { margin-top: 18px; font-size: 1rem; color: #ebeae6; display: flex; flex-wrap: wrap; row-gap: 2px; }
   .sh-facts span { white-space: nowrap; }
   /* Séparateur après chaque élément (sauf le dernier) : au retour à la ligne,
      il reste en fin de ligne plutôt que d'ouvrir la suivante */
@@ -178,14 +185,16 @@
 
   .btn {
     display: inline-flex; align-items: center; justify-content: center;
-    font-family: 'Karla', sans-serif; font-size: 1rem; font-weight: 700;
+    font-family: var(--police-texte); font-size: 1rem; font-weight: 700;
     text-decoration: none; border: none;
     padding: 15px 28px; min-height: 48px; border-radius: var(--radius); cursor: pointer;
     transition: background .2s ease;
   }
   .btn-primary { background: var(--terra); color: #fff; }
   .btn-primary:hover { background: var(--terra-dark); }
-  .btn:focus-visible { outline: 3px solid #e8d5b8; outline-offset: 3px; }
+  .btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  /* Sur la photo sombre de l'accueil, le contour de focus passe en blanc */
+  .sh-copy .btn:focus-visible, .sh-copy .link-light:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
   /* Action secondaire : un simple lien, pour ne garder qu'un bouton par écran */
   .link-light {
     color: #fff; font-weight: 600; text-decoration: underline;
@@ -218,10 +227,10 @@
 
   /* La maison pièce par pièce : une fiche en lignes, sans cartes */
   .fiche { margin-top: 80px; border-top: 1px solid var(--ink); }
-  .fiche h3 { font-size: 1.05rem; font-family: 'Karla', sans-serif; font-weight: 700; padding: 18px 0 6px; }
+  .fiche h3 { font-size: 1.05rem; font-family: var(--police-texte); font-weight: 700; padding: 18px 0 6px; }
   .fiche dl { display: grid; grid-template-columns: 5fr 7fr; column-gap: 64px; }
   .fiche dt, .fiche dd { padding: 20px 0; border-bottom: 1px solid var(--line); }
-  .fiche dt { font-family: 'Playfair Display', serif; font-size: 1.3rem; }
+  .fiche dt { font-family: var(--police-titre); font-size: 1.3rem; }
   .fiche dd { color: var(--ink-soft); }
   @media (max-width: 860px) {
     .fiche dl { grid-template-columns: 1fr; }
@@ -257,16 +266,16 @@
 
   /* ---------- Lightbox ---------- */
   dialog.lightbox {
-    border: none; background: rgba(18, 15, 12, .93); padding: 0;
+    border: none; background: rgba(14, 16, 17, .93); padding: 0;
     width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh;
   }
-  dialog.lightbox::backdrop { background: rgba(18, 15, 12, .8); }
+  dialog.lightbox::backdrop { background: rgba(14, 16, 17, .8); }
   .lightbox figure {
     width: 100%; height: 100%; display: flex; flex-direction: column; gap: 12px;
     align-items: center; justify-content: center; padding: 64px 72px 24px;
   }
   .lightbox img { max-width: 100%; max-height: calc(100% - 40px); object-fit: contain; border-radius: 4px; }
-  .lightbox figcaption { color: #e9dfd0; font-size: .95rem; text-align: center; }
+  .lightbox figcaption { color: #e6e6e3; font-size: .95rem; text-align: center; }
   .lightbox .close, .lightbox .nav-lb {
     position: absolute; width: 48px; height: 48px;
     border-radius: 50%; border: 1px solid rgba(255, 255, 255, .4);
@@ -293,16 +302,16 @@
   .coffret-photo .tile { aspect-ratio: 3 / 4; }
   .coffret-photo figcaption { font-size: .92rem; color: var(--night-soft); }
   .coffrets-head p { color: var(--night-soft); max-width: 52ch; margin-top: 18px; }
-  .offres { margin-top: 44px; border-top: 1px solid rgba(243, 236, 226, .25); }
+  .offres { margin-top: 44px; border-top: 1px solid rgba(241, 240, 237, .2); }
   .offre { padding: 30px 0 30px; }
-  .offre + .offre { border-top: 1px solid rgba(243, 236, 226, .25); }
+  .offre + .offre { border-top: 1px solid rgba(241, 240, 237, .2); }
   .offre-top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
   .offre h3 { font-size: 1.75rem; }
-  .offre .price { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: #e8a07f; white-space: nowrap; }
+  .offre .price { font-family: var(--police-titre); font-size: 1.4rem; color: var(--nuit-accent); white-space: nowrap; }
   .offre p { color: var(--night-soft); margin-top: 10px; }
   .offre ul { margin-top: 18px; padding-left: 1.1em; color: var(--night-ink); }
   .offre li { padding: 3px 0; }
-  .offre li::marker { color: #e8a07f; }
+  .offre li::marker { color: var(--nuit-accent); }
   .coffrets .note { margin-top: 8px; color: var(--night-soft); font-size: .95rem; }
   .coffrets .note a { color: var(--night-ink); text-underline-offset: 4px; }
   @media (max-width: 860px) {
@@ -334,7 +343,7 @@
   .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px 40px; margin-top: 40px; }
   @media (max-width: 960px) and (min-width: 761px) { .info-grid { grid-template-columns: 1fr 1fr; } }
   .info b { display: block; font-size: .95rem; color: var(--ink-soft); font-weight: 500; margin-bottom: 4px; }
-  .info span { font-family: 'Playfair Display', serif; font-size: 1.35rem; }
+  .info span { font-family: var(--police-titre); font-size: 1.35rem; }
   .info small { display: block; font-size: .95rem; color: var(--ink-soft); margin-top: 4px; }
   @media (max-width: 760px) { .info-grid { grid-template-columns: 1fr; gap: 24px; } }
   .regles { display: flex; flex-wrap: wrap; gap: 12px 36px; list-style: none; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); }
@@ -348,7 +357,7 @@
   /* Flèches alignées sur la ligne des noms de mois */
   .cal-nav { position: absolute; top: -6px; right: 0; display: flex; gap: 8px; }
   .cal-btn {
-    width: 44px; height: 44px; border-radius: 50%; border: 1px solid #d9ccb9;
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--champ);
     background: var(--surface); color: var(--ink); font-size: 1.5rem; line-height: 1;
     cursor: pointer; display: grid; place-items: center; padding-bottom: 3px;
   }
@@ -358,7 +367,7 @@
   .cal-mois { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
   .mois { width: 100%; border-collapse: collapse; table-layout: fixed; }
   .mois caption {
-    text-align: left; font-family: 'Playfair Display', serif; font-size: 1.35rem;
+    text-align: left; font-family: var(--police-titre); font-size: 1.35rem;
     padding: 0 0 16px; text-transform: capitalize;
   }
   .mois th { font-size: .85rem; font-weight: 600; color: var(--ink-soft); padding-bottom: 8px; }
@@ -373,10 +382,10 @@
   .case .prix { font-size: .74rem; color: var(--ink-soft); margin-top: 3px; white-space: nowrap; }
   .case.libre { background: var(--surface); border: 1px solid var(--line); }
   .case.pris {
-    color: #8a7f72; text-decoration: line-through; text-decoration-color: var(--terra);
-    background: repeating-linear-gradient(135deg, #efe6d8 0 5px, #e6dac8 5px 10px);
+    color: #6f7579; text-decoration: line-through; text-decoration-color: var(--terra);
+    background: repeating-linear-gradient(135deg, #eeeeeb 0 5px, #e3e4e1 5px 10px);
   }
-  .case.passe { color: #b3a898; }
+  .case.passe { color: #aeb2b4; }
   .case.aujourdhui { box-shadow: inset 0 0 0 2px var(--wood-dark); font-weight: 700; }
   .dispos .legende {
     margin-top: 20px; font-size: .92rem; color: var(--ink-soft);
@@ -408,23 +417,23 @@
   .field label .req { color: var(--terra-dark); }
   /* Champs de saisie uniquement : les boutons radio et cases à cocher gardent leur taille */
   .field input:not([type="radio"]):not([type="checkbox"]), .field select, .field textarea {
-    font-family: 'Karla', sans-serif; font-size: 1rem; color: var(--ink);
-    background: var(--bg); border: 1px solid #d9ccb9; border-radius: var(--radius);
+    font-family: var(--police-texte); font-size: 1rem; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--champ); border-radius: var(--radius);
     padding: 12px 14px; min-height: 48px; width: 100%;
     transition: border-color .2s, box-shadow .2s;
   }
   .field textarea { resize: vertical; min-height: 110px; }
   .field input:not([type="radio"]):not([type="checkbox"]):focus, .field select:focus, .field textarea:focus {
-    outline: none; border-color: var(--wood-dark); box-shadow: 0 0 0 3px rgba(160, 124, 79, .2);
+    outline: none; border-color: var(--wood-dark); box-shadow: 0 0 0 3px rgba(160, 116, 63, .22);
   }
   .choice-row { display: flex; flex-wrap: wrap; gap: 10px; }
   .choice {
     display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1 1 auto;
-    border: 1px solid #d9ccb9; border-radius: var(--radius); padding: 11px 16px; min-height: 48px;
+    border: 1px solid var(--champ); border-radius: var(--radius); padding: 11px 16px; min-height: 48px;
     background: var(--bg);
     transition: border-color .2s, background .2s;
   }
-  .choice:has(input:checked) { border-color: var(--wood-dark); background: #f4ecdf; }
+  .choice:has(input:checked) { border-color: var(--wood-dark); background: var(--teinte); }
   .choice input { accent-color: var(--wood-dark); width: 17px; height: 17px; cursor: pointer; }
   .choice b { font-weight: 600; }
   .choice small { color: var(--ink-soft); font-size: .92rem; }
@@ -433,7 +442,7 @@
   /* Estimation du séjour, sous les dates */
   .estimation {
     grid-column: 1 / -1; margin-top: -4px; padding: 12px 14px;
-    background: #f4ecdf; border-radius: var(--radius); font-size: .98rem;
+    background: var(--teinte); border-radius: var(--radius); font-size: .98rem;
   }
   .estimation b { font-weight: 700; }
   .estimation .alerte { display: block; margin-top: 4px; color: var(--terra-dark); font-weight: 600; }
@@ -443,7 +452,7 @@
     background: var(--night); color: var(--night-soft);
     padding: 44px 24px; text-align: center; font-size: .95rem;
   }
-  footer .brand-foot { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--night-ink); margin-bottom: 4px; }
+  footer .brand-foot { font-family: var(--police-titre); font-size: 1.2rem; color: var(--night-ink); margin-bottom: 4px; }
 </style>
 </head>
 <body>
