@@ -15,445 +15,7 @@
 <!-- Signale que JavaScript tourne : les apparitions au défilement ne masquent
      le contenu que dans ce cas. Sans JS, tout reste visible. -->
 <script>document.documentElement.classList.add('js');</script>
-<style>
-  :root {
-    /* Piste « Ardoise & chêne » : couleurs tirées de la maison elle-même
-       (murs blancs, façades anthracite de la cuisine, chêne, tuile du toit) */
-    --bg: #fafaf8;
-    --surface: #ffffff;
-    --ink: #1e2225;
-    --ink-soft: #585e63;
-    --wood: #a0743f;          /* chêne */
-    --wood-dark: #7a5629;
-    --terra: #a8452a;         /* tuile du toit : bouton principal */
-    --terra-dark: #8e3920;
-    --night: #24282b;         /* anthracite : bandes sombres */
-    --night-ink: #f1f0ed;
-    --night-soft: #b9bcbd;
-    --nuit-accent: #d1a36a;   /* chêne clair, lisible sur l'anthracite */
-    --line: #e1e2df;
-    --champ: #cfd2d0;         /* bordure des champs et boutons ronds */
-    --teinte: #f3efe8;        /* fond d'un choix coché, de l'estimation */
-    --radius: 6px;
-    --police-titre: 'Newsreader', Georgia, serif;
-    --police-texte: 'Hanken Grotesk', system-ui, sans-serif;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: var(--police-texte);
-    background: var(--bg);
-    color: var(--ink);
-    font-size: 17px;
-    line-height: 1.65;
-    -webkit-font-smoothing: antialiased;
-  }
-  h1, h2, h3 { font-family: var(--police-titre); font-weight: 500; line-height: 1.12; letter-spacing: -.01em; }
-  img { max-width: 100%; display: block; }
-  a { color: inherit; }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
-
-  /* ---------- Nav ---------- */
-  header.nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 28px;
-    transition: background .3s ease, box-shadow .3s ease, padding .3s ease;
-    color: #fff;
-  }
-  header.nav.scrolled {
-    background: var(--bg);
-    color: var(--ink);
-    box-shadow: 0 1px 0 var(--line);
-    padding: 12px 28px;
-  }
-  .brand { font-family: var(--police-titre); font-size: 1.3rem; text-decoration: none; line-height: 1.2; }
-  .brand small { display: block; font-family: var(--police-texte); font-size: .8rem; opacity: .85; }
-  nav.links { display: flex; gap: 28px; }
-  nav.links a {
-    text-decoration: none; font-size: .98rem; font-weight: 500;
-    padding: 4px 0; border-bottom: 1.5px solid transparent;
-    transition: border-color .2s;
-  }
-  nav.links a:hover, nav.links a:focus-visible { border-bottom-color: currentColor; }
-  @media (max-width: 760px) { nav.links { display: none; } }
-
-  /* ---------- Hero : la photo s'ouvre au défilement ---------- */
-  /* --p va de 0 (petite vignette) à 1 (plein écran). Valeur par défaut 1 :
-     sans JavaScript, le hero s'affiche directement ouvert et lisible. */
-  /* padding: 0 indispensable — sinon le hero hérite du padding commun aux <section> */
-  .scroll-hero { position: relative; height: 260svh; padding: 0; }
-  .sh-stage {
-    --p: 1;
-    --w0: min(74vw, 330px);
-    --h0: min(58svh, 440px);
-    --ix: calc((100vw - var(--w0)) / 2 * (1 - var(--p)));
-    --iy: calc((100svh - var(--h0)) / 2 * (1 - var(--p)));
-    position: sticky; top: 0; height: 100svh;
-    overflow: hidden; isolation: isolate; color: #fff;
-  }
-  /* Voile sombre en haut : garantit la lisibilité du menu à toutes les étapes */
-  .sh-stage::before {
-    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 190px; z-index: 2;
-    background: linear-gradient(to bottom, rgba(14, 16, 17, .58), transparent);
-    pointer-events: none;
-  }
-  /* Fond d'accueil : vidéo du paysage (remplace l'ancien flou).
-     S'efface au fil du défilement, comme le faisait le flou (opacity 1 - p). */
-  .sh-bg {
-    position: absolute; inset: 0; z-index: 0; overflow: hidden;
-    background: #121415 url('img/paysage-poster.jpg') center / cover no-repeat;
-    /* L'assombrissement est posé ici, sur le conteneur : il s'applique donc de
-       façon identique à l'image de repli (poster = 1re image de la vidéo) ET à
-       la vidéo. Si la vidéo ne se lance pas, le repli est exactement cette
-       première image, au même rendu que la vidéo. */
-    filter: brightness(.6) saturate(.95);
-    opacity: calc(1 - var(--p));
-  }
-  .sh-bg video {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; object-position: center;
-    opacity: 0; transition: opacity .8s ease;
-  }
-  .sh-bg video.pret { opacity: 1; }
-  .sh-media {
-    position: absolute; inset: 0; z-index: 1;
-    clip-path: inset(var(--iy) var(--ix) var(--iy) var(--ix) round calc(26px * (1 - var(--p))));
-    will-change: clip-path;
-  }
-  .sh-media img {
-    /* --shift décale l'image quand elle est réduite, pour que la vignette
-       cadre sur la porte d'entrée (vers 81 % de la largeur de maison.jpg).
-       Il revient à 0 en s'ouvrant. Valeur négative = image poussée vers la
-       gauche. -34 % centre la porte ; la limite au-delà de laquelle le bord
-       droit de l'image entrerait dans la vignette est d'environ -37 % (à
-       901 px de large). Sur petits écrans, c'est object-position qui cadre. */
-    --shift: -34%;
-    width: 100%; height: 100%; object-fit: cover; object-position: 34% 62%;
-    transform: translateX(calc(var(--shift) * (1 - var(--p)))) scale(calc(1.12 - .12 * var(--p)));
-  }
-  /* Écrans étroits : l'image déborde en largeur, on cadre sur la porte
-     d'entrée, dans la partie droite de la photo */
-  @media (max-width: 900px) { .sh-media img { --shift: 0%; object-position: 95% 62%; } }
-  .sh-media::after {
-    content: ""; position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(16, 18, 19, .86) 0%, rgba(16, 18, 19, .55) 30%, rgba(16, 18, 19, .12) 58%, rgba(16, 18, 19, .28) 100%);
-    opacity: var(--p);
-  }
-  /* Le texte occupe plus de hauteur sur mobile : voile plus soutenu */
-  @media (max-width: 760px) {
-    .sh-media::after {
-      background: linear-gradient(to top, rgba(16, 18, 19, .9) 0%, rgba(16, 18, 19, .72) 40%, rgba(16, 18, 19, .25) 70%, rgba(16, 18, 19, .3) 100%);
-    }
-  }
-  /* Le nom de la maison, scindé en deux moitiés qui s'écartent */
-  .sh-titles {
-    --split: clamp(150px, 46vw, 660px);
-    position: absolute; inset: 0; z-index: 2; pointer-events: none;
-    display: flex; align-items: center; justify-content: center;
-    gap: calc(14px + var(--split) * var(--p));
-    opacity: clamp(0, calc(1 - (var(--p) - .58) * 2.6), 1);
-  }
-  .sh-titles span {
-    font-family: var(--police-titre); font-weight: 500;
-    font-size: clamp(2.1rem, 6.6vw, 5rem); line-height: 1; white-space: nowrap;
-    text-shadow: 0 2px 30px rgba(0, 0, 0, .5);
-  }
-  .sh-hint {
-    position: absolute; z-index: 3; left: 0; right: 0; bottom: 34px; text-align: center;
-    font-size: .92rem; color: #ebeae6; opacity: clamp(0, calc(1 - var(--p) * 3.4), 1);
-  }
-  .sh-hint svg { width: 18px; height: 18px; margin: 8px auto 0; animation: shBob 2.2s ease-in-out infinite; }
-  @keyframes shBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
-  .sh-copy {
-    --in: clamp(0, calc((var(--p) - .70) * 4), 1);
-    position: absolute; z-index: 3; left: 0; right: 0; bottom: 0;
-    padding-bottom: clamp(40px, 8svh, 80px);
-    opacity: var(--in);
-    transform: translateY(calc(26px * (1 - var(--in))));
-  }
-  .sh-copy h1 { font-size: clamp(2rem, 4.8vw, 3.4rem); max-width: 16ch; text-wrap: balance; }
-  .sh-copy p.lede { margin-top: 16px; max-width: 50ch; font-size: 1.08rem; color: #f1f0ed; }
-  @media (max-width: 760px) { .sh-copy p.lede { display: none; } }
-  /* Les points clés en une ligne de texte, séparés par des points médians */
-  .sh-facts { margin-top: 18px; font-size: 1rem; color: #ebeae6; display: flex; flex-wrap: wrap; row-gap: 2px; }
-  .sh-facts span { white-space: nowrap; }
-  /* Séparateur après chaque élément (sauf le dernier) : au retour à la ligne,
-     il reste en fin de ligne plutôt que d'ouvrir la suivante */
-  .sh-facts span:not(:last-child)::after { content: "·"; margin: 0 .55em; opacity: .7; }
-  .sh-copy .cta-row { margin-top: 28px; display: flex; gap: 28px; flex-wrap: wrap; align-items: center; }
-
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    font-family: var(--police-texte); font-size: 1rem; font-weight: 700;
-    text-decoration: none; border: none;
-    padding: 15px 28px; min-height: 48px; border-radius: var(--radius); cursor: pointer;
-    transition: background .2s ease;
-  }
-  .btn-primary { background: var(--terra); color: #fff; }
-  .btn-primary:hover { background: var(--terra-dark); }
-  .btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
-  /* Sur la photo sombre de l'accueil, le contour de focus passe en blanc */
-  .sh-copy .btn:focus-visible, .sh-copy .link-light:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
-  /* Action secondaire : un simple lien, pour ne garder qu'un bouton par écran */
-  .link-light {
-    color: #fff; font-weight: 600; text-decoration: underline;
-    text-underline-offset: 5px; text-decoration-thickness: 1px;
-  }
-  .link-light:hover { text-decoration-thickness: 2px; }
-
-  /* ---------- Sections ---------- */
-  section { padding: 104px 0; }
-  h2.title { font-size: clamp(1.9rem, 3.6vw, 2.75rem); text-wrap: balance; }
-  .lead { color: var(--ink-soft); max-width: 60ch; }
-  /* Apparition douce : ne masque le contenu que si JavaScript tourne */
-  .js .reveal { opacity: 0; transform: translateY(20px); transition: opacity .6s ease, transform .6s ease; }
-  .js .reveal.visible { opacity: 1; transform: none; }
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    .js .reveal { opacity: 1; transform: none; transition: none; }
-    /* Pas d'expansion : le hero est ouvert d'emblée, sur une hauteur d'écran normale */
-    .scroll-hero { height: 100svh; }
-    .sh-hint svg { animation: none; }
-  }
-
-  /* ---------- Logement ---------- */
-  .logement { padding-top: 128px; }
-  .intro { display: grid; grid-template-columns: 5fr 7fr; gap: 64px; align-items: start; }
-  @media (min-width: 861px) { .intro h2, .contact-grid h2 { max-width: 12ch; } }
-  .intro p { color: var(--ink-soft); margin-bottom: 16px; max-width: 60ch; }
-  .intro p:first-child { font-size: 1.2rem; color: var(--ink); }
-  @media (max-width: 860px) { .intro { grid-template-columns: 1fr; gap: 24px; } }
-
-  /* La maison pièce par pièce : une fiche en lignes, sans cartes */
-  .fiche { margin-top: 80px; border-top: 1px solid var(--ink); }
-  .fiche h3 { font-size: 1.05rem; font-family: var(--police-texte); font-weight: 700; padding: 18px 0 6px; }
-  .fiche dl { display: grid; grid-template-columns: 5fr 7fr; column-gap: 64px; }
-  .fiche dt, .fiche dd { padding: 20px 0; border-bottom: 1px solid var(--line); }
-  .fiche dt { font-family: var(--police-titre); font-size: 1.3rem; }
-  .fiche dd { color: var(--ink-soft); }
-  @media (max-width: 860px) {
-    .fiche dl { grid-template-columns: 1fr; }
-    .fiche dt { border-bottom: none; padding-bottom: 2px; }
-    .fiche dd { padding-top: 0; }
-  }
-
-  /* ---------- Photos ---------- */
-  .photos { padding-top: 40px; }
-  .photos-head { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; flex-wrap: wrap; margin-bottom: 28px; }
-  .photos-head p { color: var(--ink-soft); font-size: .95rem; max-width: 44ch; }
-  .gallery { display: grid; gap: 36px; }
-  /* flex-grow proportionnel au ratio de chaque photo, base 0 : toutes les
-     photos d'une rangée ont exactement la même hauteur, sans recadrage */
-  .g-row { display: flex; gap: 16px; align-items: flex-start; }
-  .g-row .shot { flex: var(--r) 1 0; min-width: 0; }
-  .shot { margin: 0; display: flex; flex-direction: column; gap: 8px; }
-  .tile {
-    display: block; width: 100%; aspect-ratio: var(--r); overflow: hidden; border-radius: var(--radius);
-    border: none; padding: 0; cursor: zoom-in; background: var(--line);
-  }
-  .tile img { width: 100%; height: 100%; object-fit: cover; }
-  .tile:focus-visible { outline: 3px solid var(--terra); outline-offset: 3px; }
-  .shot figcaption { font-size: .92rem; color: var(--ink-soft); }
-  /* Téléphone : grille à 2 colonnes, les photos en largeur occupent toute
-     la ligne, les photos en hauteur se rangent par deux */
-  @media (max-width: 760px) {
-    .gallery { grid-template-columns: 1fr 1fr; grid-auto-flow: dense; gap: 22px 12px; }
-    .g-row { display: contents; }
-    .shot.paysage { grid-column: 1 / -1; }
-    .shot:not(.paysage) .tile { aspect-ratio: 3 / 4; }
-  }
-
-  /* ---------- Lightbox ---------- */
-  dialog.lightbox {
-    border: none; background: rgba(14, 16, 17, .93); padding: 0;
-    width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh;
-  }
-  dialog.lightbox::backdrop { background: rgba(14, 16, 17, .8); }
-  .lightbox figure {
-    width: 100%; height: 100%; display: flex; flex-direction: column; gap: 12px;
-    align-items: center; justify-content: center; padding: 64px 72px 24px;
-  }
-  .lightbox img { max-width: 100%; max-height: calc(100% - 40px); object-fit: contain; border-radius: 4px; }
-  .lightbox figcaption { color: #e6e6e3; font-size: .95rem; text-align: center; }
-  .lightbox .close, .lightbox .nav-lb {
-    position: absolute; width: 48px; height: 48px;
-    border-radius: 50%; border: 1px solid rgba(255, 255, 255, .4);
-    background: rgba(255, 255, 255, .1); color: #fff; font-size: 1.6rem; line-height: 1;
-    cursor: pointer; display: grid; place-items: center;
-  }
-  .lightbox .close { top: 18px; right: 18px; }
-  .lightbox .nav-lb { top: 50%; transform: translateY(-50%); font-size: 2rem; padding-bottom: 4px; }
-  .lightbox .prev { left: 14px; }
-  .lightbox .next { right: 14px; }
-  .lightbox .nav-lb[hidden] { display: none; }
-  .lightbox .close:hover, .lightbox .nav-lb:hover { background: rgba(255, 255, 255, .25); }
-  @media (max-width: 640px) {
-    .lightbox figure { padding: 64px 12px 84px; }
-    .lightbox .nav-lb { top: auto; bottom: 18px; transform: none; }
-    .lightbox .prev { left: calc(50% - 60px); }
-    .lightbox .next { right: calc(50% - 60px); }
-  }
-
-  /* ---------- Coffrets : bande sombre, pour rompre le rythme ---------- */
-  .coffrets { background: var(--night); color: var(--night-ink); padding: 112px 0; }
-  .coffrets-grid { display: grid; grid-template-columns: 5fr 7fr; gap: 72px; align-items: start; }
-  .coffret-photo { margin: 0; display: flex; flex-direction: column; gap: 10px; }
-  .coffret-photo .tile { aspect-ratio: 3 / 4; }
-  .coffret-photo figcaption { font-size: .92rem; color: var(--night-soft); }
-  .coffrets-head p { color: var(--night-soft); max-width: 52ch; margin-top: 18px; }
-  .offres { margin-top: 44px; border-top: 1px solid rgba(241, 240, 237, .2); }
-  .offre { padding: 30px 0 30px; }
-  .offre + .offre { border-top: 1px solid rgba(241, 240, 237, .2); }
-  .offre-top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
-  .offre h3 { font-size: 1.75rem; }
-  .offre .price { font-family: var(--police-titre); font-size: 1.4rem; color: var(--nuit-accent); white-space: nowrap; }
-  .offre p { color: var(--night-soft); margin-top: 10px; }
-  .offre ul { margin-top: 18px; padding-left: 1.1em; color: var(--night-ink); }
-  .offre li { padding: 3px 0; }
-  .offre li::marker { color: var(--nuit-accent); }
-  .coffrets .note { margin-top: 8px; color: var(--night-soft); font-size: .95rem; }
-  .coffrets .note a { color: var(--night-ink); text-underline-offset: 4px; }
-  @media (max-width: 860px) {
-    .coffrets-grid { grid-template-columns: 1fr; gap: 40px; }
-    /* Sur téléphone, la photo vient après le texte, près de l'offre qu'elle illustre */
-    .coffret-photo { order: 2; }
-    .coffret-photo .tile { aspect-ratio: 4 / 5; }
-  }
-
-  /* ---------- Autour : photo et liste côte à côte ---------- */
-  .autour { padding: 120px 0 104px; }
-  .around-grid { display: grid; grid-template-columns: 6fr 5fr; gap: 72px; align-items: start; }
-  .around-grid h2 { margin-bottom: 16px; }
-  .moselle { margin: 0; }
-  .moselle img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; object-position: center 60%; border-radius: var(--radius); }
-  .moselle figcaption { margin-top: 10px; font-size: .92rem; color: var(--ink-soft); }
-  ul.spots { list-style: none; margin-top: 36px; border-top: 1px solid var(--line); }
-  .spot { padding: 18px 0; border-bottom: 1px solid var(--line); }
-  .spot b { display: block; font-size: 1.05rem; }
-  .spot span { color: var(--ink-soft); }
-  @media (max-width: 860px) {
-    .around-grid { grid-template-columns: 1fr; gap: 40px; }
-    .around-grid .moselle { order: 2; }
-    .moselle img { aspect-ratio: 4 / 3; }
-  }
-
-  /* ---------- Infos pratiques ---------- */
-  .infos { background: var(--surface); padding: 88px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-  .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px 40px; margin-top: 40px; }
-  @media (max-width: 960px) and (min-width: 761px) { .info-grid { grid-template-columns: 1fr 1fr; } }
-  .info b { display: block; font-size: .95rem; color: var(--ink-soft); font-weight: 500; margin-bottom: 4px; }
-  .info span { font-family: var(--police-titre); font-size: 1.35rem; }
-  .info small { display: block; font-size: .95rem; color: var(--ink-soft); margin-top: 4px; }
-  @media (max-width: 760px) { .info-grid { grid-template-columns: 1fr; gap: 24px; } }
-  .regles { display: flex; flex-wrap: wrap; gap: 12px 36px; list-style: none; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); }
-  .regle { display: inline-flex; align-items: center; gap: 10px; }
-  .regle svg { width: 20px; height: 20px; color: var(--wood-dark); flex: none; }
-
-  /* ---------- Disponibilités ---------- */
-  .dispos { padding: 104px 0 0; }
-  .dispos-head .lead { margin-top: 14px; }
-  .cal { position: relative; margin-top: 40px; }
-  /* Flèches alignées sur la ligne des noms de mois */
-  .cal-nav { position: absolute; top: -6px; right: 0; display: flex; gap: 8px; }
-  .cal-btn {
-    width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--champ);
-    background: var(--surface); color: var(--ink); font-size: 1.5rem; line-height: 1;
-    cursor: pointer; display: grid; place-items: center; padding-bottom: 3px;
-  }
-  .cal-btn:hover:not(:disabled) { border-color: var(--wood-dark); }
-  .cal-btn:disabled { opacity: .35; cursor: default; }
-  .cal-btn:focus-visible { outline: 3px solid var(--terra); outline-offset: 2px; }
-  .cal-mois { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
-  .mois { width: 100%; border-collapse: collapse; table-layout: fixed; }
-  .mois caption {
-    text-align: left; font-family: var(--police-titre); font-size: 1.35rem;
-    padding: 0 0 16px; text-transform: capitalize;
-  }
-  .mois th { font-size: .85rem; font-weight: 600; color: var(--ink-soft); padding-bottom: 8px; }
-  .mois abbr { text-decoration: none; }
-  .mois td { padding: 2px; text-align: center; }
-  .case {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 52px; border-radius: 4px; line-height: 1.15;
-    font-size: .98rem; font-variant-numeric: tabular-nums;
-  }
-  /* Prix de la nuit, sous la date (nuits libres uniquement) */
-  .case .prix { font-size: .74rem; color: var(--ink-soft); margin-top: 3px; white-space: nowrap; }
-  .case.libre { background: var(--surface); border: 1px solid var(--line); }
-  .case.pris {
-    color: #6f7579; text-decoration: line-through; text-decoration-color: var(--terra);
-    background: repeating-linear-gradient(135deg, #eeeeeb 0 5px, #e3e4e1 5px 10px);
-  }
-  .case.passe { color: #aeb2b4; }
-  .case.aujourdhui { box-shadow: inset 0 0 0 2px var(--wood-dark); font-weight: 700; }
-  .dispos .legende {
-    margin-top: 20px; font-size: .92rem; color: var(--ink-soft);
-    display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px;
-  }
-  .cle { display: inline-flex; align-items: center; gap: 8px; }
-  .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .cle .case { width: 34px; height: 30px; font-size: .85rem; }
-  @media (max-width: 760px) {
-    .cal-mois { grid-template-columns: 1fr; }
-    .mois:nth-child(2) { display: none; }
-    .mois td { padding: 1.5px; }
-    .case { height: 48px; font-size: .92rem; }
-    .case .prix { font-size: .68rem; margin-top: 2px; }
-  }
-
-  /* ---------- Contact : texte à gauche, formulaire à droite ---------- */
-  .contact { padding: 112px 0 120px; }
-  .contact-grid { display: grid; grid-template-columns: 5fr 7fr; gap: 64px; align-items: start; }
-  .contact-grid h2 { margin-bottom: 16px; }
-  .contact-grid .lead { margin-bottom: 18px; }
-  .contact .alt { font-size: .95rem; color: var(--ink-soft); }
-  @media (max-width: 860px) { .contact-grid { grid-template-columns: 1fr; gap: 32px; } }
-  .form-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 36px; }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  .field.full { grid-column: 1 / -1; }
-  .field > label, .field > .label { font-size: .95rem; font-weight: 600; color: var(--ink); }
-  .field label .req { color: var(--terra-dark); }
-  /* Champs de saisie uniquement : les boutons radio et cases à cocher gardent leur taille */
-  .field input:not([type="radio"]):not([type="checkbox"]), .field select, .field textarea {
-    font-family: var(--police-texte); font-size: 1rem; color: var(--ink);
-    background: var(--bg); border: 1px solid var(--champ); border-radius: var(--radius);
-    padding: 12px 14px; min-height: 48px; width: 100%;
-    transition: border-color .2s, box-shadow .2s;
-  }
-  .field textarea { resize: vertical; min-height: 110px; }
-  .field input:not([type="radio"]):not([type="checkbox"]):focus, .field select:focus, .field textarea:focus {
-    outline: none; border-color: var(--wood-dark); box-shadow: 0 0 0 3px rgba(160, 116, 63, .22);
-  }
-  .choice-row { display: flex; flex-wrap: wrap; gap: 10px; }
-  .choice {
-    display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1 1 auto;
-    border: 1px solid var(--champ); border-radius: var(--radius); padding: 11px 16px; min-height: 48px;
-    background: var(--bg);
-    transition: border-color .2s, background .2s;
-  }
-  .choice:has(input:checked) { border-color: var(--wood-dark); background: var(--teinte); }
-  .choice input { accent-color: var(--wood-dark); width: 17px; height: 17px; cursor: pointer; }
-  .choice b { font-weight: 600; }
-  .choice small { color: var(--ink-soft); font-size: .92rem; }
-  .form-card .btn-primary { width: 100%; margin-top: 28px; }
-  .form-hint { margin-top: 12px; font-size: .92rem; color: var(--ink-soft); }
-  /* Estimation du séjour, sous les dates */
-  .estimation {
-    grid-column: 1 / -1; margin-top: -4px; padding: 12px 14px;
-    background: var(--teinte); border-radius: var(--radius); font-size: .98rem;
-  }
-  .estimation b { font-weight: 700; }
-  .estimation .alerte { display: block; margin-top: 4px; color: var(--terra-dark); font-weight: 600; }
-  @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } .form-card { padding: 24px 18px; } }
-
-  footer {
-    background: var(--night); color: var(--night-soft);
-    padding: 44px 24px; text-align: center; font-size: .95rem;
-  }
-  footer .brand-foot { font-family: var(--police-titre); font-size: 1.2rem; color: var(--night-ink); margin-bottom: 4px; }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -464,9 +26,10 @@
     <a href="#photos">Photos</a>
     <a href="#coffrets">Coffrets</a>
     <a href="#autour">Autour</a>
-    <a href="#disponibilites" id="lien-dispos" hidden>Disponibilités</a>
+    <a href="#disponibilites" hidden data-si-dispos>Disponibilités</a>
     <a href="#contact">Contact</a>
   </nav>
+  <a class="nav-reserver" href="reservation.html">Réserver</a>
 </header>
 
 <main id="top">
@@ -495,8 +58,11 @@
       <p class="lede">Maison indépendante de plain-pied avec terrasse couverte et parking privé, à quelques pas de la Moselle, du port et des commerces. Le point de chute idéal pour découvrir Épinal et les Vosges.</p>
       <p class="sh-facts"><span>Dès 60&nbsp;€ la nuit</span><span>2 voyageurs</span><span>1 chambre, lit double</span><span>Parking privé</span><span>Maison entière</span></p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="#contact">Réserver un séjour</a>
-        <a class="link-light" href="#photos">Voir les photos</a>
+        <a class="btn btn-primary" href="reservation.html">Réserver un séjour</a>
+        <a class="btn btn-tel" href="tel:+33631269899" aria-label="Appeler le 06 31 26 98 99">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>
+          06&nbsp;31&nbsp;26&nbsp;98&nbsp;99
+        </a>
       </div>
      </div>
     </div>
@@ -635,7 +201,7 @@
           </ul>
         </div>
       </div>
-      <p class="note">Les coffrets se réservent en même temps que votre séjour, via le <a href="#contact">formulaire de demande</a>.</p>
+      <p class="note">Les coffrets se réservent en même temps que votre séjour, sur la <a href="reservation.html">page de réservation</a>.</p>
       </div>
     </div>
   </section>
@@ -685,7 +251,7 @@
        par une tâche GitHub à partir de l'agenda « Le Nid de Sam » (voir le
        README). La section reste masquée tant que ce fichier n'existe pas, ou
        s'il n'a pas été mis à jour depuis plus de 7 jours. -->
-  <section id="disponibilites" class="dispos" hidden>
+  <section id="disponibilites" class="dispos" hidden data-si-dispos>
     <div class="wrap">
       <div class="dispos-head">
         <h2 class="title">Les dates encore libres</h2>
@@ -704,26 +270,22 @@
         <span>Prix par nuit, taxe de séjour comprise.</span>
         <span id="cal-maj"></span>
       </p>
+      <p class="dispos-action"><a class="btn btn-primary" href="reservation.html">Choisir mes dates et réserver</a></p>
     </div>
   </section>
 
-  <!-- ======= CONTACT ======= -->
+  <!-- ======= CONTACT : renseignements uniquement =======
+       Les réservations passent par reservation.html. -->
   <section id="contact" class="contact">
     <div class="wrap contact-grid">
       <div class="reveal">
-        <h2 class="title">Demander des dates ou un renseignement</h2>
-        <p class="lead">Remplissez ce formulaire pour une demande de renseignements ou de réservation : nous répondons rapidement et avec plaisir.</p>
+        <h2 class="title">Une question sur la maison&nbsp;?</h2>
+        <p class="lead">Écrivez-nous ici pour tout renseignement : nous répondons rapidement et avec plaisir.</p>
+        <p class="contact-autres">Pour réserver, passez par la <a href="reservation.html">page de réservation</a>. Vous pouvez aussi nous appeler au <a href="tel:+33631269899">06&nbsp;31&nbsp;26&nbsp;98&nbsp;99</a>.</p>
         <p class="alt">Bientôt disponible aussi sur Airbnb et Booking.com.</p>
       </div>
-      <form class="form-card reveal" id="booking-form">
+      <form class="form-card reveal" id="info-form">
         <div class="form-grid">
-          <div class="field full" role="radiogroup" aria-labelledby="lbl-demande">
-            <span class="label" id="lbl-demande">Votre demande <span class="req">*</span></span>
-            <div class="choice-row">
-              <label class="choice"><input type="radio" name="demande" value="Renseignements" checked><b>Renseignements</b></label>
-              <label class="choice"><input type="radio" name="demande" value="Réservation"><b>Réservation</b></label>
-            </div>
-          </div>
           <div class="field">
             <label for="f-nom">Nom et prénom <span class="req">*</span></label>
             <input id="f-nom" name="nom" type="text" autocomplete="name" required>
@@ -736,35 +298,12 @@
             <label for="f-email">Email <span class="req">*</span></label>
             <input id="f-email" name="email" type="email" autocomplete="email" required>
           </div>
-          <div class="field">
-            <label for="f-arrivee">Arrivée souhaitée</label>
-            <input id="f-arrivee" name="arrivee" type="date">
-          </div>
-          <div class="field">
-            <label for="f-depart">Départ</label>
-            <input id="f-depart" name="depart" type="date">
-          </div>
-          <p class="estimation full" id="estimation" aria-live="polite" hidden></p>
           <div class="field full">
-            <label for="f-voyageurs">Voyageurs</label>
-            <select id="f-voyageurs" name="voyageurs">
-              <option value="1">1 voyageur</option>
-              <option value="2" selected>2 voyageurs</option>
-            </select>
-          </div>
-          <div class="field full" role="group" aria-labelledby="lbl-coffrets">
-            <span class="label" id="lbl-coffrets">Coffrets en option</span>
-            <div class="choice-row">
-              <label class="choice"><input type="checkbox" name="coffret" value="Pack LOVE (+49 €)" data-prix="49"><span><b>Pack LOVE</b> <small>+49&nbsp;€</small></span></label>
-              <label class="choice"><input type="checkbox" name="coffret" value="Coffret Vosgien (+29 €)" data-prix="29"><span><b>Coffret Vosgien</b> <small>+29&nbsp;€</small></span></label>
-            </div>
-          </div>
-          <div class="field full">
-            <label for="f-message">Votre message</label>
-            <textarea id="f-message" name="message" placeholder="Une question, une précision sur votre séjour…"></textarea>
+            <label for="f-message">Votre question <span class="req">*</span></label>
+            <textarea id="f-message" name="message" required placeholder="Équipements, accès, environs…"></textarea>
           </div>
         </div>
-        <button class="btn btn-primary" type="submit">Envoyer ma demande</button>
+        <button class="btn btn-primary" type="submit">Envoyer ma question</button>
         <p class="form-hint">L'envoi ouvre votre messagerie avec un email prêt à partir. Vous pouvez le relire avant de l'envoyer.</p>
       </form>
     </div>
@@ -784,115 +323,8 @@
   <button class="nav-lb next" type="button" aria-label="Photo suivante" id="lb-next">›</button>
 </dialog>
 
+<script src="calendrier.js"></script>
 <script>
-  /* ═══════════════════════════════════════════════════════════════════
-     PRIX DES NUITS — à modifier ici si les tarifs de base changent
-
-     Taxe de séjour comprise. Le week-end = les nuits du vendredi et du
-     samedi. Pour une période particulière (vacances, fêtes…), le
-     propriétaire crée dans l'agenda un évènement « Tarif 95 » : il
-     remplace ces prix sur les nuits concernées (voir le README).
-     ═══════════════════════════════════════════════════════════════════ */
-  const TARIF_SEMAINE = 60;
-  const TARIF_WEEKEND = 75;
-
-  // Dates manipulées en heure locale, au format AAAA-MM-JJ
-  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  const depuisIso = (s) => { const [a, m, j] = s.split('-').map(Number); return new Date(a, m - 1, j); };
-
-  // Nuits réservées et tarifs particuliers, remplis depuis dispos.json
-  const dispos = { reserve: new Set(), tarifs: new Map() };
-  const prixNuit = (d) => dispos.tarifs.get(iso(d)) ??
-    (d.getDay() === 5 || d.getDay() === 6 ? TARIF_WEEKEND : TARIF_SEMAINE);
-
-  /* ═══════════════════════════════════════════════════════════════════
-     CALENDRIER DES DISPONIBILITÉS
-
-     Rien à modifier ici : les nuits réservées sont lues dans dispos.json,
-     que la tâche GitHub « Disponibilités » met à jour toutes les 10 minutes à
-     partir de l'agenda Google « Le Nid de Sam » (voir le README).
-     En ligne, le fichier est lu directement sur GitHub (à jour à 5 min
-     près, sans attendre la republication du site) ; en local, à côté de
-     la page.
-     ═══════════════════════════════════════════════════════════════════ */
-  (() => {
-    const SOURCE = location.hostname.endsWith('github.io')
-      ? 'https://raw.githubusercontent.com/KevKobal/le-nid-de-sam/main/dispos.json'
-      : 'dispos.json';
-    const MOIS_MAX = 17;          // on peut feuilleter jusqu'à 17 mois après le mois en cours
-    const PERIME_JOURS = 7;       // au-delà, les données sont jugées trop anciennes pour être affichées
-
-    const section = document.getElementById('disponibilites');
-    const lien = document.getElementById('lien-dispos');
-    const zone = document.getElementById('cal-mois');
-    const prec = document.getElementById('cal-prev');
-    const suiv = document.getElementById('cal-next');
-
-    const aujourdhui = new Date(); aujourdhui.setHours(0, 0, 0, 0);
-    const cleAujourdhui = iso(aujourdhui);
-    const nomMois = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
-    const JOURS = [['L', 'lundi'], ['M', 'mardi'], ['M', 'mercredi'], ['J', 'jeudi'], ['V', 'vendredi'], ['S', 'samedi'], ['D', 'dimanche']];
-
-    const reserve = dispos.reserve;
-    let decalage = 0;             // nombre de mois après le mois en cours
-
-    const tableMois = (annee, mois) => {
-      const table = document.createElement('table');
-      table.className = 'mois';
-      const premier = new Date(annee, mois, 1);
-      let html = `<caption>${nomMois.format(premier)}</caption><thead><tr>` +
-        JOURS.map(([c, l]) => `<th scope="col"><abbr title="${l}">${c}</abbr></th>`).join('') + '</tr></thead><tbody><tr>';
-      const vides = (premier.getDay() + 6) % 7;   // la semaine commence le lundi
-      html += '<td></td>'.repeat(vides);
-      const nbJours = new Date(annee, mois + 1, 0).getDate();
-      for (let j = 1; j <= nbJours; j++) {
-        const jour = new Date(annee, mois, j);
-        const cle = iso(jour);
-        const passe = jour < aujourdhui;
-        const pris = !passe && reserve.has(cle);
-        const classes = ['case', passe ? 'passe' : pris ? 'pris' : 'libre', cle === cleAujourdhui ? 'aujourdhui' : ''].join(' ').trim();
-        // Texte lu par les lecteurs d'écran seulement : l'état ne passe pas que par la couleur
-        const etat = pris ? '<span class="vh"> : nuit réservée</span>' : '';
-        const prix = !passe && !pris ? `<span class="prix">${prixNuit(jour)}&nbsp;€</span>` : '';
-        html += `<td><span class="${classes}"><span class="num">${j}</span>${etat}${prix}</span></td>`;
-        if ((vides + j) % 7 === 0 && j < nbJours) html += '</tr><tr>';
-      }
-      html += '<td></td>'.repeat((7 - (vides + nbJours) % 7) % 7) + '</tr></tbody>';
-      table.innerHTML = html;
-      return table;
-    };
-
-    const afficher = () => {
-      const base = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth() + decalage, 1);
-      const suivant = new Date(base.getFullYear(), base.getMonth() + 1, 1);
-      zone.replaceChildren(tableMois(base.getFullYear(), base.getMonth()), tableMois(suivant.getFullYear(), suivant.getMonth()));
-      prec.disabled = decalage === 0;
-      suiv.disabled = decalage >= MOIS_MAX;
-    };
-    prec.addEventListener('click', () => { decalage = Math.max(0, decalage - 1); afficher(); });
-    suiv.addEventListener('click', () => { decalage = Math.min(MOIS_MAX, decalage + 1); afficher(); });
-
-    fetch(SOURCE, { cache: 'no-cache' })
-      .then(r => r.ok ? r.json() : Promise.reject(new Error('dispos.json absent')))
-      .then(donnees => {
-        const maj = depuisIso(donnees.maj);
-        if ((aujourdhui - maj) / 864e5 > PERIME_JOURS) return;   // données trop anciennes : on n'affiche rien
-        for (const [debut, fin] of donnees.reserve || []) {
-          for (let d = depuisIso(debut); d < depuisIso(fin); d.setDate(d.getDate() + 1)) reserve.add(iso(d));
-        }
-        for (const [debut, fin, prix] of donnees.tarifs || []) {
-          for (let d = depuisIso(debut); d < depuisIso(fin); d.setDate(d.getDate() + 1)) dispos.tarifs.set(iso(d), prix);
-        }
-        document.getElementById('cal-maj').textContent =
-          `Mis à jour le ${maj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}. Les disponibilités restent à confirmer lors de votre demande.`;
-        afficher();
-        section.hidden = false;
-        lien.hidden = false;
-        document.dispatchEvent(new Event('dispos-chargees'));   // le formulaire recalcule son estimation
-      })
-      .catch(() => { /* pas de données : la section reste masquée */ });
-  })();
-
   // Hero : la photo s'ouvre au fil du défilement, et fond du menu
   const nav = document.getElementById('nav');
   const heroSection = document.querySelector('.scroll-hero');
@@ -989,78 +421,22 @@
   });
   lb.addEventListener('click', (e) => { if (e.target === lb || e.target.tagName === 'FIGURE') lb.close(); });
 
-  // Formulaire : compose un email pré-rempli
+  // Formulaire de renseignements : compose un email pré-rempli.
   // Adresse assemblée à l'exécution : elle n'apparaît pas en clair dans le code source,
   // ce qui la protège des robots collecteurs de spam.
   const DESTINATAIRE = ['leniddesam', 'gmail.com'].join('@');
-  const form = document.getElementById('booking-form');
-  const fmtDate = (v) => v ? new Date(v + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : null;
-
-  // Estimation du séjour : prix de chaque nuit (mêmes règles que le calendrier)
-  // + coffrets cochés. Signale aussi les nuits déjà réservées.
-  const champArrivee = document.getElementById('f-arrivee');
-  const champDepart = document.getElementById('f-depart');
-  const zoneEstimation = document.getElementById('estimation');
-  const euros = (n) => `${n.toLocaleString('fr-FR')} €`;
-  const estimer = () => {
-    const a = champArrivee.value, dep = champDepart.value;
-    if (!a || !dep) return null;
-    const debut = depuisIso(a), fin = depuisIso(dep);
-    if (fin <= debut) return { erreur: 'La date de départ doit être après la date d’arrivée.' };
-    let nuits = 0, sejour = 0; const prises = [];
-    for (let d = new Date(debut); d < fin; d.setDate(d.getDate() + 1)) {
-      nuits++; sejour += prixNuit(d);
-      if (dispos.reserve.has(iso(d))) prises.push(d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }));
-    }
-    const coffrets = [...form.querySelectorAll('input[name="coffret"]:checked')].reduce((s, c) => s + Number(c.dataset.prix || 0), 0);
-    return { nuits, sejour, coffrets, total: sejour + coffrets, prises };
-  };
-  const majEstimation = () => {
-    // Le départ ne peut pas précéder le lendemain de l'arrivée
-    if (champArrivee.value) {
-      const lendemain = depuisIso(champArrivee.value); lendemain.setDate(lendemain.getDate() + 1);
-      champDepart.min = iso(lendemain);
-    }
-    const e = estimer();
-    zoneEstimation.hidden = !e;
-    if (!e) return;
-    if (e.erreur) { zoneEstimation.innerHTML = `<span class="alerte">${e.erreur}</span>`; return; }
-    let texte = `Estimation : <b>${e.nuits} nuit${e.nuits > 1 ? 's' : ''}, ${euros(e.sejour)}</b>`;
-    if (e.coffrets) texte += ` + coffrets ${euros(e.coffrets)} = <b>${euros(e.total)}</b>`;
-    texte += ', taxe de séjour comprise.';
-    if (e.prises.length) {
-      const liste = e.prises.length > 1 ? `${e.prises.slice(0, -1).join(', du ')} et du ${e.prises.at(-1)}` : e.prises[0];
-      texte += `<span class="alerte">Attention : ${e.prises.length > 1 ? 'les nuits' : 'la nuit'} du ${liste} ${e.prises.length > 1 ? 'sont déjà réservées' : 'est déjà réservée'}.</span>`;
-    }
-    zoneEstimation.innerHTML = texte;
-  };
-  champArrivee.min = iso(new Date());
-  champDepart.min = iso(new Date());
-  [champArrivee, champDepart].forEach(c => c.addEventListener('change', majEstimation));
-  form.querySelectorAll('input[name="coffret"]').forEach(c => c.addEventListener('change', majEstimation));
-  document.addEventListener('dispos-chargees', majEstimation);
-
+  const form = document.getElementById('info-form');
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const d = new FormData(form);
-    const demande = d.get('demande');
-    const coffrets = d.getAll('coffret');
-    const est = estimer();
     const lignes = [
       'Bonjour,', '',
-      `Demande : ${demande}`,
+      d.get('message'), '',
       `Nom : ${d.get('nom')}`,
       `Email : ${d.get('email')}`,
       d.get('tel') ? `Téléphone : ${d.get('tel')}` : null,
-      fmtDate(d.get('arrivee')) ? `Arrivée souhaitée : ${fmtDate(d.get('arrivee'))}` : null,
-      fmtDate(d.get('depart')) ? `Départ : ${fmtDate(d.get('depart'))}` : null,
-      `Voyageurs : ${d.get('voyageurs')}`,
-      coffrets.length ? `Coffrets : ${coffrets.join(' + ')}` : null,
-      est && !est.erreur ? `Estimation affichée sur le site : ${est.nuits} nuit(s), ${euros(est.total)} au total (taxe de séjour comprise)` : null,
-      d.get('message') ? `\nMessage :\n${d.get('message')}` : null,
-      '', 'Merci !'
     ].filter(l => l !== null);
-    const subject = `${demande} — Le Nid de Sam, Golbey`;
+    const subject = 'Renseignements — Le Nid de Sam, Golbey';
     location.href = 'mailto:' + DESTINATAIRE + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(lignes.join('\n'));
   });
 </script>

@@ -2,8 +2,7 @@
 
 Site vitrine de la maison en location courte durée à Golbey (Vosges).
 
-Page unique en HTML/CSS/JavaScript, sans dépendance ni étape de construction :
-le fichier `index.html` se suffit à lui-même.
+Site statique en HTML/CSS/JavaScript, sans dépendance ni étape de construction.
 
 ## Aperçu en ligne
 
@@ -13,7 +12,10 @@ Publié via GitHub Pages — voir le lien dans la description du dépôt.
 
 | Fichier | Rôle |
 |---|---|
-| `index.html` | tout le site : structure, styles et scripts |
+| `index.html` | page principale : présentation de la maison, calendrier, demande de renseignements |
+| `reservation.html` | page de réservation : choix des dates, coordonnées, options, récapitulatif |
+| `style.css` | styles communs aux deux pages (couleurs et polices dans `:root`) |
+| `calendrier.js` | prix des nuits, lecture de `dispos.json`, calendrier (commun aux deux pages) |
 | `img/` | photos optimisées pour le web |
 | `dispos.json` | nuits réservées, généré automatiquement (ne pas modifier à la main) |
 | `scripts/maj_dispos.py` | lit l'agenda et produit `dispos.json` |
@@ -38,10 +40,10 @@ Le site se met à jour en 10 à 20 minutes environ. Supprimer l'évènement lib�
 ### Prix des nuits
 
 Chaque nuit libre du calendrier affiche son prix (taxe de séjour comprise),
-repris dans l'estimation du formulaire de demande.
+repris dans le récapitulatif de la page de réservation.
 
 - **Prix de base** : 60 € en semaine, 75 € les nuits du vendredi et du samedi.
-  Ils sont définis au début du `<script>` de `index.html` (`TARIF_SEMAINE`,
+  Ils sont définis au début de `calendrier.js` (`TARIF_SEMAINE`,
   `TARIF_WEEKEND`), à modifier ici s'ils changent.
 - **Prix d'une période particulière** (vacances, fêtes…), géré par le
   propriétaire depuis l'agenda « Le Nid de Sam » : créer un évènement
@@ -82,14 +84,25 @@ Toutes les 10 minutes, la tâche GitHub « Disponibilités » lit l'agenda par s
 Si l'adresse secrète a fuité : dans Google Agenda, « Réinitialiser » à côté de
 l'adresse secrète, puis remplacer la valeur du secret `ICAL_URLS`.
 
-## Demandes de réservation
+## Demandes de réservation et de renseignements
 
-Le formulaire ouvre la messagerie du visiteur avec un email pré-rempli adressé
-au propriétaire. Aucun serveur n'est nécessaire. L'adresse est assemblée par le
-script pour ne pas apparaître en clair dans le code source (anti-spam).
+- **Réservation** : bouton « Réserver » de la page principale →
+  `reservation.html`. Le visiteur choisit ses dates dans le calendrier (ou les
+  saisit), voit le prix, remplit ses coordonnées, coche les coffrets et
+  accepte les conditions (horaires, annulation, règles). Le formulaire refuse
+  un séjour qui contient une nuit déjà réservée.
+- **Renseignements** : formulaire en bas de la page principale (nom, email,
+  téléphone, question).
+- **Téléphone** : 06 31 26 98 99, bouton d'appel sur l'accueil et dans
+  l'en-tête de la page de réservation.
+
+Les deux formulaires ouvrent la messagerie du visiteur avec un email
+pré-rempli adressé au propriétaire : aucun serveur n'est nécessaire, et la
+réservation n'est définitive qu'après sa confirmation. L'adresse est assemblée
+par le script pour ne pas apparaître en clair dans le code source (anti-spam).
 
 ## À faire
 
 - [ ] Reprendre les photos une fois la maison entièrement aménagée
-- [ ] Retirer la balise `noindex` de `index.html` lors de la mise en ligne
+- [ ] Retirer la balise `noindex` de `index.html` et `reservation.html` lors de la mise en ligne
       définitive (voir le commentaire dans le `<head>`)

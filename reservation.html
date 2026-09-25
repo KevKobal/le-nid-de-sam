@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Réserver — Le Nid de Sam, Golbey</title>
+<meta name="description" content="Demande de réservation pour Le Nid de Sam, maison indépendante à Golbey (Vosges) : choisissez vos dates, le prix s'affiche en direct.">
+<!-- APERÇU PRIVÉ : empêche l'indexation par les moteurs de recherche.
+     À SUPPRIMER lors de la mise en ligne définitive du site. -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2324282b'/><path d='M7 15.2 16 8l9 7.2' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/><path d='M9.6 14.6V24h12.8v-9.4' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('js');</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="page-resa">
+
+<header class="nav scrolled">
+  <a class="brand" href="index.html">Le Nid de Sam<small>Golbey, Vosges</small></a>
+  <nav class="links" aria-label="Navigation principale">
+    <a href="index.html#logement">La maison</a>
+    <a href="index.html#photos">Photos</a>
+    <a href="index.html#coffrets">Coffrets</a>
+    <a href="index.html#contact">Contact</a>
+  </nav>
+  <a class="nav-reserver" href="tel:+33631269899" aria-label="Appeler le 06 31 26 98 99">06&nbsp;31&nbsp;26&nbsp;98&nbsp;99</a>
+</header>
+
+<main class="resa">
+  <div class="wrap">
+    <div class="resa-tete">
+      <a class="retour" href="index.html">← Retour à la présentation de la maison</a>
+      <h1>Réserver votre séjour</h1>
+      <p class="lead">Choisissez vos dates et laissez vos coordonnées. Le propriétaire vous confirme la réservation par retour, par email ou par téléphone.</p>
+    </div>
+
+    <div class="resa-grille">
+      <form class="resa-form" id="resa-form" novalidate>
+
+        <!-- 1. Dates -->
+        <fieldset class="etape">
+          <legend>1. Vos dates</legend>
+          <p class="aide">Touchez votre date d'arrivée dans le calendrier, puis votre date de départ. Vous pouvez aussi les saisir directement.</p>
+          <div class="form-grid">
+            <div class="field">
+              <label for="f-arrivee">Arrivée <span class="req">*</span></label>
+              <input id="f-arrivee" name="arrivee" type="date" required>
+            </div>
+            <div class="field">
+              <label for="f-depart">Départ <span class="req">*</span></label>
+              <input id="f-depart" name="depart" type="date" required>
+            </div>
+            <div class="field full">
+              <label for="f-heure">Heure d'arrivée prévue</label>
+              <select id="f-heure" name="heure">
+                <option value="">Je ne sais pas encore</option>
+                <option>Entre 16 h et 17 h</option>
+                <option>Entre 17 h et 18 h</option>
+                <option>Entre 18 h et 19 h</option>
+                <option>Entre 19 h et 20 h</option>
+                <option>Après 20 h</option>
+              </select>
+            </div>
+            <p class="estimation full" id="alerte-dates" aria-live="polite" hidden></p>
+          </div>
+
+          <!-- Calendrier : masqué tant que les disponibilités ne sont pas connues -->
+          <div class="cal" data-choix hidden data-si-dispos>
+            <div class="cal-nav">
+              <button class="cal-btn" type="button" id="cal-prev" aria-label="Mois précédent">‹</button>
+              <button class="cal-btn" type="button" id="cal-next" aria-label="Mois suivant">›</button>
+            </div>
+            <div class="cal-mois" id="cal-mois"></div>
+            <p class="cal-choix" id="cal-choix" aria-live="polite"></p>
+            <p class="legende dispos-legende">
+              <span class="cle"><span class="case libre" aria-hidden="true">12</span> Nuit libre, avec son prix</span>
+              <span class="cle"><span class="case pris" aria-hidden="true">12</span> Nuit réservée</span>
+              <span id="cal-maj"></span>
+            </p>
+          </div>
+        </fieldset>
+
+        <!-- 2. Coordonnées -->
+        <fieldset class="etape">
+          <legend>2. Vos coordonnées</legend>
+          <div class="form-grid">
+            <div class="field">
+              <label for="f-prenom">Prénom <span class="req">*</span></label>
+              <input id="f-prenom" name="prenom" type="text" autocomplete="given-name" required>
+            </div>
+            <div class="field">
+              <label for="f-nom">Nom <span class="req">*</span></label>
+              <input id="f-nom" name="nom" type="text" autocomplete="family-name" required>
+            </div>
+            <div class="field">
+              <label for="f-email">Email <span class="req">*</span></label>
+              <input id="f-email" name="email" type="email" autocomplete="email" required>
+            </div>
+            <div class="field">
+              <label for="f-tel">Téléphone <span class="req">*</span></label>
+              <input id="f-tel" name="tel" type="tel" autocomplete="tel" inputmode="tel" required>
+            </div>
+            <div class="field full">
+              <label for="f-voyageurs">Nombre de voyageurs <span class="req">*</span></label>
+              <select id="f-voyageurs" name="voyageurs" required>
+                <option value="1">1 voyageur</option>
+                <option value="2" selected>2 voyageurs</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- 3. Options -->
+        <fieldset class="etape">
+          <legend>3. Options et message</legend>
+          <div class="form-grid">
+            <div class="field full" role="group" aria-labelledby="lbl-coffrets">
+              <span class="label" id="lbl-coffrets">Coffrets à votre arrivée</span>
+              <div class="choice-row">
+                <label class="choice"><input type="checkbox" name="coffret" value="Pack LOVE (+49 €)" data-prix="49"><span><b>Pack LOVE</b> <small>champagne, pétales de rose, chocolats · +49&nbsp;€</small></span></label>
+                <label class="choice"><input type="checkbox" name="coffret" value="Coffret Vosgien (+29 €)" data-prix="29"><span><b>Coffret Vosgien</b> <small>panier garni de spécialités · +29&nbsp;€</small></span></label>
+              </div>
+            </div>
+            <div class="field full">
+              <label for="f-message">Message</label>
+              <textarea id="f-message" name="message" placeholder="Une précision sur votre séjour, une question…"></textarea>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="conditions">
+          <input type="checkbox" name="conditions" id="f-conditions" required>
+          <div>
+            <label for="f-conditions">J'ai pris connaissance des conditions du séjour <span class="req">*</span></label>
+            <ul>
+              <li>Arrivée à partir de 16&nbsp;h, départ avant 11&nbsp;h.</li>
+              <li>Une annulation moins de 48&nbsp;h avant l'arrivée n'est pas remboursée.</li>
+              <li>Logement non-fumeur, animaux non admis.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="recap-mobile">
+          <h3>Votre séjour</h3>
+          <div id="recap-mobile"><p class="vide">Choisissez vos dates pour voir le prix.</p></div>
+        </div>
+        <p class="estimation" id="erreurs" role="alert" hidden></p>
+        <button class="btn btn-primary" type="submit">Envoyer ma demande de réservation</button>
+        <p class="form-hint">L'envoi ouvre votre messagerie avec un email prêt à partir, adressé au propriétaire. Vous pouvez le relire avant de l'envoyer. La réservation n'est définitive qu'après sa confirmation.</p>
+      </form>
+
+      <aside class="recap" aria-labelledby="titre-recap">
+        <h2 id="titre-recap">Votre séjour</h2>
+        <div id="recap-contenu" aria-live="polite"><p class="vide">Choisissez vos dates pour voir le prix.</p></div>
+        <p class="note-recap">Prix par nuit : 60&nbsp;€ en semaine, 75&nbsp;€ les vendredis et samedis soir, taxe de séjour comprise.</p>
+        <p class="note-recap">Une question avant de réserver&nbsp;? Appelez le <a href="tel:+33631269899">06&nbsp;31&nbsp;26&nbsp;98&nbsp;99</a>.</p>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="brand-foot">Le Nid de Sam</div>
+  <div>Golbey, Vosges, France</div>
+</footer>
+
+<script src="calendrier.js"></script>
+<script>
+  // Adresse assemblée à l'exécution : elle n'apparaît pas en clair dans le code source,
+  // ce qui la protège des robots collecteurs de spam.
+  const DESTINATAIRE = ['leniddesam', 'gmail.com'].join('@');
+  const form = document.getElementById('resa-form');
+  const champArrivee = document.getElementById('f-arrivee');
+  const champDepart = document.getElementById('f-depart');
+  const alerteDates = document.getElementById('alerte-dates');
+  // Deux récapitulatifs : l'encadré de droite (grand écran) et celui au-dessus du bouton (téléphone)
+  const recaps = [document.getElementById('recap-contenu'), document.getElementById('recap-mobile')];
+  const remplirRecap = (html) => recaps.forEach(el => { el.innerHTML = html; });
+  const zoneErreurs = document.getElementById('erreurs');
+  const fmtLong = (v) => depuisIso(v).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  const aujourdhui = iso(new Date());
+  champArrivee.min = aujourdhui;
+  champDepart.min = lendemain(aujourdhui);
+
+  const coffretsCoches = () => [...form.querySelectorAll('input[name="coffret"]:checked')];
+
+  // Recalcule le récapitulatif, et signale un problème de dates
+  const majSejour = () => {
+    const a = champArrivee.value, d = champDepart.value;
+    if (a) champDepart.min = lendemain(a);
+    const e = estimerSejour(a, d);
+    let probleme = '';
+    if (e?.erreur) probleme = e.erreur;
+    else if (e?.prises.length) probleme = `Attention : ${phraseNuitsPrises(e.prises)}. Choisissez d'autres dates.`;
+    champDepart.setCustomValidity(probleme);
+    alerteDates.hidden = !probleme;
+    alerteDates.innerHTML = probleme ? `<span class="alerte">${probleme}</span>` : '';
+
+    if (!e || e.erreur) {
+      remplirRecap('<p class="vide">Choisissez vos dates pour voir le prix.</p>');
+      return;
+    }
+    const coffrets = coffretsCoches();
+    const totalCoffrets = coffrets.reduce((s, c) => s + Number(c.dataset.prix), 0);
+    let lignes = `<dt>Arrivée</dt><dd>${jourMois(a)}</dd><dt>Départ</dt><dd>${jourMois(d)}</dd>` +
+      `<dt>${e.nuits} nuit${e.nuits > 1 ? 's' : ''}</dt><dd>${euros(e.prix)}</dd>`;
+    coffrets.forEach(c => { lignes += `<dt>${c.value.replace(/ \(.*\)$/, '')}</dt><dd>${euros(Number(c.dataset.prix))}</dd>`; });
+    lignes += `<dt class="total">Total estimé</dt><dd class="total">${euros(e.prix + totalCoffrets)}</dd>`;
+    remplirRecap(`<dl>${lignes}</dl>`);
+  };
+
+  // Calendrier ↔ champs de dates
+  Calendrier.auChoix((a, d) => {
+    champArrivee.value = a || '';
+    champDepart.value = d || '';
+    majSejour();
+  });
+  [champArrivee, champDepart].forEach(c => c.addEventListener('change', () => {
+    Calendrier.definir(champArrivee.value, champDepart.value);
+    majSejour();
+  }));
+  form.querySelectorAll('input[name="coffret"]').forEach(c => c.addEventListener('change', majSejour));
+  document.addEventListener('dispos-chargees', majSejour);
+
+  // Envoi : vérification des champs, puis email pré-rempli
+  form.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    majSejour();
+    const invalides = [...form.elements].filter(el => el.willValidate && !el.checkValidity());
+    if (invalides.length) {
+      const noms = invalides.map(el => el.type === 'checkbox' ? 'les conditions du séjour'
+        : (form.querySelector(`label[for="${el.id}"]`)?.firstChild.textContent.trim().toLowerCase() || el.name));
+      const dates = champDepart.validationMessage && invalides.includes(champDepart) ? ` ${champDepart.validationMessage}` : '';
+      zoneErreurs.innerHTML = `<span class="alerte">À compléter : ${[...new Set(noms)].join(', ')}.${dates}</span>`;
+      zoneErreurs.hidden = false;
+      invalides[0].focus();
+      return;
+    }
+    zoneErreurs.hidden = true;
+
+    const d = new FormData(form);
+    const e = estimerSejour(d.get('arrivee'), d.get('depart'));
+    const coffrets = d.getAll('coffret');
+    const totalCoffrets = coffretsCoches().reduce((s, c) => s + Number(c.dataset.prix), 0);
+    const lignes = [
+      'Bonjour,', '',
+      'Je souhaite réserver Le Nid de Sam :', '',
+      `Arrivée : ${fmtLong(d.get('arrivee'))}`,
+      `Départ : ${fmtLong(d.get('depart'))}`,
+      `Nuits : ${e.nuits}`,
+      d.get('heure') ? `Heure d'arrivée prévue : ${d.get('heure')}` : null,
+      `Voyageurs : ${d.get('voyageurs')}`,
+      coffrets.length ? `Coffrets : ${coffrets.join(' + ')}` : null,
+      `Total estimé sur le site : ${euros(e.prix + totalCoffrets)} (taxe de séjour comprise)`, '',
+      `Nom : ${d.get('prenom')} ${d.get('nom')}`,
+      `Email : ${d.get('email')}`,
+      `Téléphone : ${d.get('tel')}`,
+      d.get('message') ? `\nMessage :\n${d.get('message')}` : null,
+      '', "J'ai pris connaissance des conditions du séjour (horaires, annulation, règles de la maison).",
+      '', 'Merci !'
+    ].filter(l => l !== null);
+    const subject = `Réservation du ${jourMois(d.get('arrivee'))} au ${jourMois(d.get('depart'))} — Le Nid de Sam`;
+    location.href = 'mailto:' + DESTINATAIRE + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(lignes.join('\n'));
+  });
+</script>
+
+</body>
+</html>
