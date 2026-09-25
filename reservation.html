@@ -33,7 +33,9 @@
     <div class="resa-tete">
       <a class="retour" href="index.html">← Retour à la présentation de la maison</a>
       <h1>Réserver votre séjour</h1>
-      <p class="lead">Choisissez vos dates et laissez vos coordonnées. Le propriétaire vous confirme la réservation par retour, par email ou par téléphone.</p>
+      <p class="lead" data-mode="demande">Choisissez vos dates et laissez vos coordonnées. Le propriétaire vous confirme la réservation par retour, par email ou par téléphone.</p>
+      <p class="lead" data-mode="paiement" hidden>Choisissez vos dates et réglez en ligne : votre réservation est confirmée dès le paiement, par email.</p>
+      <p class="estimation info-retour" id="info-retour" role="status" hidden></p>
     </div>
 
     <div class="resa-grille">
@@ -119,8 +121,8 @@
             <div class="field full" role="group" aria-labelledby="lbl-coffrets">
               <span class="label" id="lbl-coffrets">Coffrets à votre arrivée</span>
               <div class="choice-row">
-                <label class="choice"><input type="checkbox" name="coffret" value="Pack LOVE (+49 €)" data-prix="49"><span><b>Pack LOVE</b> <small>champagne, pétales de rose, chocolats · +49&nbsp;€</small></span></label>
-                <label class="choice"><input type="checkbox" name="coffret" value="Coffret Vosgien (+29 €)" data-prix="29"><span><b>Coffret Vosgien</b> <small>panier garni de spécialités · +29&nbsp;€</small></span></label>
+                <label class="choice"><input type="checkbox" name="coffret" value="Pack LOVE (+49 €)" data-prix="49" data-cle="love"><span><b>Pack LOVE</b> <small>champagne, pétales de rose, chocolats · +49&nbsp;€</small></span></label>
+                <label class="choice"><input type="checkbox" name="coffret" value="Coffret Vosgien (+29 €)" data-prix="29" data-cle="vosgien"><span><b>Coffret Vosgien</b> <small>panier garni de spécialités · +29&nbsp;€</small></span></label>
               </div>
             </div>
             <div class="field full">
@@ -129,6 +131,11 @@
             </div>
           </div>
         </fieldset>
+
+        <div class="piege" aria-hidden="true">
+          <label for="f-site">Ne pas remplir ce champ</label>
+          <input id="f-site" name="site_web" type="text" tabindex="-1" autocomplete="off">
+        </div>
 
         <div class="conditions">
           <input type="checkbox" name="conditions" id="f-conditions" required>
@@ -141,14 +148,22 @@
             </ul>
           </div>
         </div>
+        <div class="conditions" data-mode="paiement" hidden>
+          <input type="checkbox" name="cgv" id="f-cgv" data-requis-paiement>
+          <div>
+            <label for="f-cgv">J'accepte les <a href="cgv.html" target="_blank" rel="noopener">conditions générales de vente</a> <span class="req">*</span></label>
+          </div>
+        </div>
 
         <div class="recap-mobile">
           <h3>Votre séjour</h3>
           <div id="recap-mobile"><p class="vide">Choisissez vos dates pour voir le prix.</p></div>
         </div>
         <p class="estimation" id="erreurs" role="alert" hidden></p>
-        <button class="btn btn-primary" type="submit">Envoyer ma demande de réservation</button>
-        <p class="form-hint">L'envoi ouvre votre messagerie avec un email prêt à partir, adressé au propriétaire. Vous pouvez le relire avant de l'envoyer. La réservation n'est définitive qu'après sa confirmation.</p>
+        <button class="btn btn-primary" type="submit" id="bouton-envoi"><span data-mode="demande">Envoyer ma demande de réservation</span><span data-mode="paiement" hidden>Payer et réserver</span></button>
+        <p class="form-hint" data-mode="demande">L'envoi ouvre votre messagerie avec un email prêt à partir, adressé au propriétaire. Vous pouvez le relire avant de l'envoyer. La réservation n'est définitive qu'après sa confirmation.</p>
+        <p class="form-hint" data-mode="demande">Aucun paiement n'est demandé sur ce site. Une fois votre réservation confirmée, vous recevez par email un lien de paiement sécurisé.</p>
+        <p class="form-hint" data-mode="paiement" hidden>Vous allez être dirigé vers la page de paiement sécurisée de Stripe (carte bancaire, Apple Pay, Google Pay…). Vos dates sont mises de côté pendant 30 minutes, et votre réservation est confirmée par email dès le paiement.</p>
       </form>
 
       <aside class="recap" aria-labelledby="titre-recap">
@@ -225,22 +240,76 @@
   form.querySelectorAll('input[name="coffret"]').forEach(c => c.addEventListener('change', majSejour));
   document.addEventListener('dispos-chargees', majSejour);
 
-  // Envoi : vérification des champs, puis email pré-rempli
-  form.addEventListener('submit', (ev) => {
-    ev.preventDefault();
+  // Champs obligatoires seulement en mode paiement (ex. conditions générales de vente)
+  form.querySelectorAll('[data-requis-paiement]').forEach(el => { el.required = MODE === 'paiement'; });
+
+  const bouton = document.getElementById('bouton-envoi');
+  const infoRetour = document.getElementById('info-retour');
+  const afficherErreur = (texte) => {
+    zoneErreurs.innerHTML = `<span class="alerte">${texte}</span>`;
+    zoneErreurs.hidden = false;
+  };
+
+  // Retour depuis Stripe sans avoir payé : les dates mises de côté sont libérées
+  const retour = new URLSearchParams(location.search).get('annule');
+  if (retour && MODE === 'paiement') {
+    fetch(`${API_RESERVATION}?action=liberer&jeton=${encodeURIComponent(retour)}`)
+      .catch(() => {})
+      .finally(() => Calendrier.recharger());
+    infoRetour.textContent = 'Paiement annulé : aucun montant n’a été prélevé et vos dates ne sont plus retenues. Vous pouvez recommencer quand vous voulez.';
+    infoRetour.hidden = false;
+    history.replaceState(null, '', location.pathname);
+  }
+
+  // Vérifie les champs ; renvoie false (et affiche ce qui manque) s'il y a un problème
+  const champsValides = () => {
     majSejour();
     const invalides = [...form.elements].filter(el => el.willValidate && !el.checkValidity());
-    if (invalides.length) {
-      const noms = invalides.map(el => el.type === 'checkbox' ? 'les conditions du séjour'
-        : (form.querySelector(`label[for="${el.id}"]`)?.firstChild.textContent.trim().toLowerCase() || el.name));
-      const dates = champDepart.validationMessage && invalides.includes(champDepart) ? ` ${champDepart.validationMessage}` : '';
-      zoneErreurs.innerHTML = `<span class="alerte">À compléter : ${[...new Set(noms)].join(', ')}.${dates}</span>`;
-      zoneErreurs.hidden = false;
-      invalides[0].focus();
-      return;
-    }
-    zoneErreurs.hidden = true;
+    if (!invalides.length) { zoneErreurs.hidden = true; return true; }
+    const noms = invalides.map(el => el.id === 'f-cgv' ? 'les conditions générales de vente'
+      : el.type === 'checkbox' ? 'les conditions du séjour'
+      : (form.querySelector(`label[for="${el.id}"]`)?.firstChild.textContent.trim().toLowerCase() || el.name));
+    // Message sur les dates seulement s'il vient de nous (nuit déjà réservée…), pas du navigateur
+    const dates = champDepart.validity.customError && invalides.includes(champDepart) ? ` ${champDepart.validationMessage}` : '';
+    afficherErreur(`À compléter : ${[...new Set(noms)].join(', ')}.${dates}`);
+    invalides[0].focus();
+    return false;
+  };
 
+  // Mode paiement : le programme Google vérifie les dates, calcule le prix,
+  // met les dates de côté et renvoie l'adresse de la page de paiement Stripe
+  const payer = async () => {
+    const d = new FormData(form);
+    const envoi = {
+      action: 'reserver',
+      arrivee: d.get('arrivee'), depart: d.get('depart'), heure: d.get('heure'),
+      prenom: d.get('prenom'), nom: d.get('nom'), email: d.get('email'), tel: d.get('tel'),
+      voyageurs: Number(d.get('voyageurs')),
+      coffrets: coffretsCoches().map(c => c.dataset.cle),
+      message: d.get('message'),
+      conditions: document.getElementById('f-conditions').checked,
+      cgv: document.getElementById('f-cgv').checked,
+      site_web: d.get('site_web'),
+    };
+    bouton.disabled = true;
+    const libelle = bouton.innerHTML;
+    bouton.textContent = 'Préparation du paiement…';
+    try {
+      // Corps envoyé en texte brut : requête « simple », sans vérification préalable du navigateur
+      const r = await fetch(API_RESERVATION, { method: 'POST', body: JSON.stringify(envoi) });
+      const rep = await r.json();
+      if (rep.ok && rep.url) { location.href = rep.url; return; }
+      afficherErreur(rep.message || 'La réservation n’a pas pu être préparée. Merci de réessayer.');
+      if (rep.erreur === 'indisponible') { await Calendrier.recharger(); majSejour(); }
+    } catch (err) {
+      afficherErreur('Connexion impossible pour le moment. Merci de réessayer, ou de nous appeler au 06 31 26 98 99.');
+    }
+    bouton.disabled = false;
+    bouton.innerHTML = libelle;
+  };
+
+  // Mode demande : email pré-rempli adressé au propriétaire
+  const demander = () => {
     const d = new FormData(form);
     const e = estimerSejour(d.get('arrivee'), d.get('depart'));
     const coffrets = d.getAll('coffret');
@@ -264,6 +333,12 @@
     ].filter(l => l !== null);
     const subject = `Réservation du ${jourMois(d.get('arrivee'))} au ${jourMois(d.get('depart'))} — Le Nid de Sam`;
     location.href = 'mailto:' + DESTINATAIRE + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(lignes.join('\n'));
+  };
+
+  form.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    if (!champsValides()) return;
+    if (MODE === 'paiement') payer(); else demander();
   });
 </script>
 

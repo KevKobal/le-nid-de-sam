@@ -25,6 +25,8 @@
   --police-texte: 'Hanken Grotesk', system-ui, sans-serif;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
+/* Un élément masqué le reste, même si son style lui donne un affichage (flex, grid…) */
+[hidden] { display: none !important; }
 html { scroll-behavior: smooth; }
 body {
   font-family: var(--police-texte);
@@ -517,3 +519,20 @@ footer .brand-foot { font-family: var(--police-titre); font-size: 1.2rem; color:
   }
   .recap-mobile h3 { font-size: 1.25rem; margin-bottom: 12px; }
 }
+
+/* Champ piège anti-robot : hors de l'écran, ignoré par les lecteurs d'écran */
+.piege { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.resa-form .conditions + .conditions { margin-top: 12px; }
+.info-retour { margin-top: 18px; }
+#bouton-envoi[disabled] { opacity: .6; cursor: wait; }
+
+/* ---------- Page de confirmation (merci.html) ---------- */
+.merci { max-width: 720px; }
+.merci h1 { font-size: clamp(2rem, 4.2vw, 3rem); }
+.merci .lead { margin-top: 14px; }
+.merci-recap { display: grid; grid-template-columns: auto 1fr; gap: 10px 28px; margin: 32px 0 0; padding: 22px 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--line); }
+.merci-recap dt { color: var(--ink-soft); }
+.merci-recap dd { font-variant-numeric: tabular-nums; }
+.merci-note { margin-top: 16px; font-size: .95rem; color: var(--ink-soft); }
+.merci-actions { margin-top: 36px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; color: var(--ink-soft); }
+.merci-actions a:not(.btn) { color: var(--ink); font-weight: 600; text-underline-offset: 3px; }

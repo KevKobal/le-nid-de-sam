@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Réservation — Le Nid de Sam, Golbey</title>
+<!-- Page de retour après paiement : jamais indexée -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2324282b'/><path d='M7 15.2 16 8l9 7.2' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/><path d='M9.6 14.6V24h12.8v-9.4' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="page-resa">
+
+<header class="nav scrolled">
+  <a class="brand" href="index.html">Le Nid de Sam<small>Golbey, Vosges</small></a>
+  <a class="nav-reserver" href="tel:+33631269899" aria-label="Appeler le 06 31 26 98 99">06&nbsp;31&nbsp;26&nbsp;98&nbsp;99</a>
+</header>
+
+<main class="resa">
+  <div class="wrap merci" aria-live="polite">
+    <!-- Un seul de ces blocs est affiché, selon la réponse du programme de réservation -->
+    <div id="etat-verif">
+      <h1>Vérification du paiement…</h1>
+      <p class="lead">Merci de patienter quelques secondes.</p>
+    </div>
+
+    <div id="etat-confirme" hidden>
+      <h1>Votre séjour est réservé</h1>
+      <p class="lead">Merci <span id="c-prenom"></span> ! Votre paiement est bien reçu. Un email de confirmation vient de vous être envoyé à <b id="c-email"></b>, avec l'adresse et les informations d'arrivée.</p>
+      <dl class="merci-recap">
+        <dt>Arrivée</dt><dd id="c-arrivee"></dd>
+        <dt>Départ</dt><dd id="c-depart"></dd>
+        <dt>Nuits</dt><dd id="c-nuits"></dd>
+        <dt>Montant payé</dt><dd id="c-montant"></dd>
+      </dl>
+      <p class="merci-note">Pensez à vérifier vos courriers indésirables si l'email n'apparaît pas dans votre boîte de réception.</p>
+    </div>
+
+    <div id="etat-attente" hidden>
+      <h1>Paiement en cours de validation</h1>
+      <p class="lead">Votre paiement n'est pas encore confirmé par la banque. Dès qu'il le sera, votre réservation sera enregistrée et vous recevrez un email de confirmation. Aucune autre action n'est nécessaire.</p>
+    </div>
+
+    <div id="etat-probleme" hidden>
+      <h1>Un souci avec votre réservation</h1>
+      <p class="lead" id="p-texte">Nous n'avons pas pu confirmer votre réservation automatiquement. Le propriétaire a été prévenu et vous recontacte rapidement ; si un paiement a été prélevé, il vous sera remboursé en cas de besoin.</p>
+    </div>
+
+    <p class="merci-actions"><a class="btn btn-primary" href="index.html">Retour au site</a>
+      <span>Une question ? <a href="tel:+33631269899">06&nbsp;31&nbsp;26&nbsp;98&nbsp;99</a></span></p>
+  </div>
+</main>
+
+<footer>
+  <div class="brand-foot">Le Nid de Sam</div>
+  <div>Golbey, Vosges, France</div>
+</footer>
+
+<script src="calendrier.js"></script>
+<script>
+  const session = new URLSearchParams(location.search).get('session_id');
+  const blocs = ['verif', 'confirme', 'attente', 'probleme'];
+  const montrer = (nom) => blocs.forEach(b => { document.getElementById('etat-' + b).hidden = b !== nom; });
+  const dateLongue = (v) => depuisIso(v).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  // Le paiement peut mettre quelques secondes à être validé : on redemande
+  // pendant une minute avant d'afficher « en cours de validation »
+  let essais = 0;
+  const verifier = async () => {
+    if (!session || !API_RESERVATION) return montrer('probleme');
+    try {
+      const r = await fetch(`${API_RESERVATION}?action=confirmer&session_id=${encodeURIComponent(session)}`);
+      const rep = await r.json();
+      if (rep.etat === 'confirme') {
+        const x = rep.resume || {};
+        document.getElementById('c-prenom').textContent = x.prenom || '';
+        document.getElementById('c-email').textContent = x.email || 'votre adresse';
+        document.getElementById('c-arrivee').textContent = x.arrivee ? `${dateLongue(x.arrivee)}, dès 16 h` : '';
+        document.getElementById('c-depart').textContent = x.depart ? `${dateLongue(x.depart)}, avant 11 h` : '';
+        document.getElementById('c-nuits').textContent = x.nuits || '';
+        document.getElementById('c-montant').textContent = x.montant != null ? euros(x.montant) : '';
+        return montrer('confirme');
+      }
+      if (rep.etat === 'en_attente' && ++essais < 12) return setTimeout(verifier, 5000);
+      if (rep.etat === 'en_attente') return montrer('attente');
+      if (rep.etat === 'expire') document.getElementById('p-texte').textContent =
+        'Le délai de paiement est dépassé et aucun montant n’a été prélevé. Vous pouvez refaire une réservation depuis la page de réservation.';
+      montrer('probleme');
+    } catch (err) {
+      if (++essais < 12) return setTimeout(verifier, 5000);
+      montrer('attente');
+    }
+  };
+  verifier();
+</script>
+
+</body>
+</html>

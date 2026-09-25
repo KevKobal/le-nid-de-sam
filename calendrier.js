@@ -12,7 +12,22 @@
    attendre la republication du site) ; en local, à côté de la page. */
 
 /* ═══════════════════════════════════════════════════════════════════
+   RÉSERVATION EN LIGNE — adresse du programme Google (se termine par /exec)
+
+   Vide : le site fonctionne en « demande par email », sans paiement en
+   ligne, et le planning vient de dispos.json (tâche GitHub).
+   Renseignée : le planning est lu en direct dans l'agenda, et la page de
+   réservation propose le paiement en ligne (voir apps-script/INSTALLATION.md).
+   ═══════════════════════════════════════════════════════════════════ */
+const API_RESERVATION = '';
+const MODE = API_RESERVATION ? 'paiement' : 'demande';
+
+// Textes propres à chaque mode : data-mode="paiement" ou data-mode="demande"
+document.querySelectorAll('[data-mode]').forEach(el => { el.hidden = el.dataset.mode !== MODE; });
+
+/* ═══════════════════════════════════════════════════════════════════
    PRIX DES NUITS — à modifier ici si les tarifs de base changent
+   (et dans apps-script/Code.gs, qui recalcule le prix au paiement)
 
    Taxe de séjour comprise. Le week-end = les nuits du vendredi et du
    samedi. Pour une période particulière (vacances, fêtes…), le
@@ -59,9 +74,12 @@ const phraseNuitsPrises = (prises) => {
    CALENDRIER DES DISPONIBILITÉS — rien à modifier ici
    ═══════════════════════════════════════════════════════════════════ */
 const Calendrier = (() => {
-  const SOURCE = location.hostname.endsWith('github.io')
+  // Planning : en direct depuis l'agenda si le programme de réservation est
+  // installé, sinon (ou s'il ne répond pas) depuis dispos.json
+  const FICHIER = location.hostname.endsWith('github.io')
     ? 'https://raw.githubusercontent.com/KevKobal/le-nid-de-sam/main/dispos.json'
     : 'dispos.json';
+  const SOURCES = [API_RESERVATION && API_RESERVATION + '?action=dispos', FICHIER].filter(Boolean);
   const MOIS_MAX = 17;          // on peut feuilleter jusqu'à 17 mois après le mois en cours
   const PERIME_JOURS = 7;       // au-delà, les données sont jugées trop anciennes pour être affichées
 
@@ -151,11 +169,16 @@ const Calendrier = (() => {
     });
   }
 
-  fetch(SOURCE, { cache: 'no-cache' })
-    .then(r => r.ok ? r.json() : Promise.reject(new Error('dispos.json absent')))
+  const lire = (i = 0) => fetch(SOURCES[i], { cache: 'no-cache' })
+    .then(r => r.ok ? r.json() : Promise.reject(new Error('planning indisponible')))
+    .catch(err => i + 1 < SOURCES.length ? lire(i + 1) : Promise.reject(err));
+
+  const charger = () => lire()
     .then(donnees => {
       const maj = depuisIso(donnees.maj);
       if ((aujourdhui - maj) / 864e5 > PERIME_JOURS) return;   // données trop anciennes : on n'affiche rien
+      dispos.reserve.clear();
+      dispos.tarifs.clear();
       for (const [debut, fin] of donnees.reserve || []) {
         for (let d = depuisIso(debut); d < depuisIso(fin); d.setDate(d.getDate() + 1)) dispos.reserve.add(iso(d));
       }
@@ -163,16 +186,20 @@ const Calendrier = (() => {
         for (let d = depuisIso(debut); d < depuisIso(fin); d.setDate(d.getDate() + 1)) dispos.tarifs.set(iso(d), prix);
       }
       const texteMaj = document.getElementById('cal-maj');
-      if (texteMaj) texteMaj.textContent =
-        `Mis à jour le ${maj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}. Les disponibilités restent à confirmer lors de votre demande.`;
+      if (texteMaj) texteMaj.textContent = MODE === 'paiement'
+        ? 'Planning à jour en temps réel.'
+        : `Mis à jour le ${maj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}. Les disponibilités restent à confirmer lors de votre demande.`;
       afficher();
       // Éléments masqués tant que les disponibilités ne sont pas connues
       document.querySelectorAll('[data-si-dispos]').forEach(el => { el.hidden = false; });
       document.dispatchEvent(new Event('dispos-chargees'));   // les formulaires recalculent leur estimation
     })
     .catch(() => { /* pas de données : le calendrier reste masqué */ });
+  if (bloc) charger();            // pages sans calendrier (merci.html) : rien à lire
 
   return {
+    // Relit le planning (ex. quand des dates viennent d'être prises)
+    recharger: charger,
     // Appelé quand le visiteur choisit ses dates dans le calendrier
     auChoix: (f) => abonnes.push(f),
     // Aligne le calendrier sur des dates saisies dans le formulaire

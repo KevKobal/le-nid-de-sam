@@ -14,6 +14,8 @@ Publié via GitHub Pages — voir le lien dans la description du dépôt.
 |---|---|
 | `index.html` | page principale : présentation de la maison, calendrier, demande de renseignements |
 | `reservation.html` | page de réservation : choix des dates, coordonnées, options, récapitulatif |
+| `merci.html` | page de retour après paiement (confirmation de la réservation) |
+| `apps-script/` | programme Google de réservation avec paiement Stripe, et son guide d'installation |
 | `style.css` | styles communs aux deux pages (couleurs et polices dans `:root`) |
 | `calendrier.js` | prix des nuits, lecture de `dispos.json`, calendrier (commun aux deux pages) |
 | `img/` | photos optimisées pour le web |
@@ -101,8 +103,33 @@ pré-rempli adressé au propriétaire : aucun serveur n'est nécessaire, et la
 réservation n'est définitive qu'après sa confirmation. L'adresse est assemblée
 par le script pour ne pas apparaître en clair dans le code source (anti-spam).
 
+## Paiement
+
+Deux modes, selon la ligne `const API_RESERVATION = '…';` en tête de
+`calendrier.js` :
+
+- **Vide (mode actuel) — demande par email** : le client envoie une demande ;
+  le propriétaire vérifie, note la réservation dans l'agenda et répond avec un
+  lien de paiement (lien de paiement Stripe ou `paypal.me/<nom>/<montant>`).
+- **Renseignée — paiement en ligne** : le programme Google (`apps-script/`)
+  vérifie les dates dans l'agenda en temps réel, calcule le prix, met les
+  dates de côté 30 minutes et envoie le client payer sur Stripe. Dès que le
+  paiement passe, la réservation est inscrite dans l'agenda, le client reçoit
+  son email de confirmation et le planning du site se met à jour. Installation
+  et utilisation : [`apps-script/INSTALLATION.md`](apps-script/INSTALLATION.md).
+
+Les textes propres à chaque mode portent l'attribut `data-mode="demande"` ou
+`data-mode="paiement"` : `calendrier.js` affiche ceux du mode actif.
+
 ## À faire
 
 - [ ] Reprendre les photos une fois la maison entièrement aménagée
+- [ ] Paiement en ligne : suivre `apps-script/INSTALLATION.md` (agenda en
+      privé, compte Stripe, programme Google), puis renseigner
+      `API_RESERVATION` dans `calendrier.js`
+- [ ] Écrire `cgv.html` (conditions générales de vente), liée depuis la page
+      de réservation en mode paiement
+- [ ] Ajouter des mentions légales et des conditions générales de vente
+      (obligatoires pour un site qui propose des séjours payants)
 - [ ] Retirer la balise `noindex` de `index.html` et `reservation.html` lors de la mise en ligne
       définitive (voir le commentaire dans le `<head>`)
