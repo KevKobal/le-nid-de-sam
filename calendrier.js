@@ -195,7 +195,21 @@ const Calendrier = (() => {
       document.dispatchEvent(new Event('dispos-chargees'));   // les formulaires recalculent leur estimation
     })
     .catch(() => { /* pas de données : le calendrier reste masqué */ });
-  if (bloc) charger();            // pages sans calendrier (merci.html) : rien à lire
+  if (bloc) {                     // pages sans calendrier (merci.html) : rien à lire
+    charger();
+    // Page restée ouverte : le planning est relu chaque minute (onglet visible
+    // seulement) et dès que le visiteur revient sur l'onglet. Les dates
+    // choisies sont conservées ; si elles viennent d'être prises, le
+    // formulaire le signale.
+    let dernier = Date.now();
+    const rafraichir = () => {
+      if (document.hidden || Date.now() - dernier < 55e3) return;
+      dernier = Date.now();
+      charger();
+    };
+    setInterval(rafraichir, 60e3);
+    document.addEventListener('visibilitychange', rafraichir);
+  }
 
   return {
     // Relit le planning (ex. quand des dates viennent d'être prises)
