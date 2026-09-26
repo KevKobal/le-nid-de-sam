@@ -546,6 +546,9 @@ footer .brand-foot { font-family: var(--police-titre); font-size: 1.2rem; color:
 .legal p + p, .legal ul + p, .legal p + ul { margin-top: 12px; }
 .legal ul { margin-left: 1.2em; }
 .legal li + li { margin-top: 6px; }
-/* Brouillon : passages à compléter, bien visibles */
-.legal .brouillon { margin-top: 28px; padding: 16px 18px; border-left: 3px solid var(--terra); background: var(--teinte); }
-.legal mark.a-completer { background: #f6e7a8; color: var(--ink); padding: 0 3px; border-radius: 3px; }
+.legal .avis { margin-top: 28px; padding: 16px 18px; border-left: 3px solid var(--wood); background: var(--teinte); }
+
+/* Liens légaux du pied de page */
+.foot-liens { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 22px; margin-top: 14px; font-size: .88rem; }
+.foot-liens a { color: var(--night-soft); text-underline-offset: 3px; }
+.foot-liens a:hover { color: var(--night-ink); }

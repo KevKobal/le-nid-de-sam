@@ -134,7 +134,9 @@ Les textes propres à chaque mode portent l'attribut `data-mode="demande"` ou
 - [x] Programme Google installé et testé en mode test (Stripe `sk_test_`)
 - [ ] Paiement en ligne : activer le compte Stripe, remplacer la clé par
       `sk_live_…`, puis passer `PAIEMENT_EN_LIGNE` à `true` dans `calendrier.js`
-- [ ] Compléter et faire relire `cgv.html` et `mentions-legales.html`
-      (brouillons), puis les publier avec un lien dans le pied de page
+- [x] `cgv.html` et `mentions-legales.html` publiées, liées en pied de page
+- [ ] Avant d'ouvrir le paiement : ajouter dans `cgv.html` le numéro
+      d'enregistrement du meublé de tourisme et le médiateur de la
+      consommation (emplacements en commentaire), puis faire relire
 - [ ] Retirer la balise `noindex` de `index.html` et `reservation.html` lors de la mise en ligne
       définitive (voir le commentaire dans le `<head>`)
