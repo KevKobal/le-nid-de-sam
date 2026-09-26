@@ -252,8 +252,8 @@
 
   // Retour depuis Stripe sans avoir payé : les dates mises de côté sont libérées
   const retour = new URLSearchParams(location.search).get('annule');
-  if (retour && MODE === 'paiement') {
-    fetch(`${API_RESERVATION}?action=liberer&jeton=${encodeURIComponent(retour)}`)
+  if (retour && API_GOOGLE) {
+    fetch(`${API_GOOGLE}?action=liberer&jeton=${encodeURIComponent(retour)}`)
       .catch(() => {})
       .finally(() => Calendrier.recharger());
     infoRetour.textContent = 'Paiement annulé : aucun montant n’a été prélevé et vos dates ne sont plus retenues. Vous pouvez recommencer quand vous voulez.';

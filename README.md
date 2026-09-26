@@ -21,7 +21,7 @@ Publié via GitHub Pages — voir le lien dans la description du dépôt.
 | `img/` | photos optimisées pour le web |
 | `dispos.json` | nuits réservées, généré automatiquement (ne pas modifier à la main) |
 | `scripts/maj_dispos.py` | lit l'agenda et produit `dispos.json` |
-| `.github/workflows/dispos.yml` | lance ce script toutes les 10 minutes |
+| `.github/workflows/dispos.yml` | lance ce script régulièrement (copie de secours du planning) |
 
 ## Calendrier des disponibilités
 
@@ -37,7 +37,7 @@ par défaut : vérifier la ligne de l'agenda avant d'enregistrer).
 - Ou avec des horaires (arrivée 15 h, départ 11 h) : même résultat.
 - Le titre peut contenir le nom du client : **seules les dates** sont publiées.
 
-Le site se met à jour en 10 à 20 minutes environ. Supprimer l'évènement libère les dates.
+Le site se met à jour en une minute environ. Supprimer l'évènement libère les dates.
 
 ### Prix des nuits
 
@@ -57,9 +57,16 @@ repris dans le récapitulatif de la page de réservation.
 
 ### Fonctionnement
 
-Toutes les 10 minutes, la tâche GitHub « Disponibilités » lit l'agenda par son
-**adresse secrète au format iCal**, ne garde que les dates et écrit
-`dispos.json`. La page lit ce fichier et affiche son propre calendrier.
+Le calendrier du site lit l'agenda **en direct** grâce au programme Google
+(`apps-script/`, adresse `API_GOOGLE` en tête de `calendrier.js`), qui ne
+renvoie que les dates. Une page restée ouverte relit le planning chaque
+minute.
+
+**Copie de secours** : la tâche GitHub « Disponibilités » lit l'agenda par
+son **adresse secrète au format iCal**, ne garde que les dates et écrit
+`dispos.json`. Le site n'utilise ce fichier que si le programme Google ne
+répond pas. La tâche est programmée toutes les 10 minutes, mais GitHub ne la
+lance en pratique que toutes les quelques heures.
 
 - L'adresse secrète est stockée dans le secret **`ICAL_URLS`** du dépôt
   (Settings → Secrets and variables → Actions). Elle n'apparaît ni dans le
@@ -105,13 +112,13 @@ par le script pour ne pas apparaître en clair dans le code source (anti-spam).
 
 ## Paiement
 
-Deux modes, selon la ligne `const API_RESERVATION = '…';` en tête de
+Deux modes, selon la ligne `const PAIEMENT_EN_LIGNE = …;` en tête de
 `calendrier.js` :
 
-- **Vide (mode actuel) — demande par email** : le client envoie une demande ;
+- **`false` (mode actuel) — demande par email** : le client envoie une demande ;
   le propriétaire vérifie, note la réservation dans l'agenda et répond avec un
   lien de paiement (lien de paiement Stripe ou `paypal.me/<nom>/<montant>`).
-- **Renseignée — paiement en ligne** : le programme Google (`apps-script/`)
+- **`true` — paiement en ligne** : le programme Google (`apps-script/`)
   vérifie les dates dans l'agenda en temps réel, calcule le prix, met les
   dates de côté 30 minutes et envoie le client payer sur Stripe. Dès que le
   paiement passe, la réservation est inscrite dans l'agenda, le client reçoit
@@ -124,12 +131,10 @@ Les textes propres à chaque mode portent l'attribut `data-mode="demande"` ou
 ## À faire
 
 - [ ] Reprendre les photos une fois la maison entièrement aménagée
-- [ ] Paiement en ligne : suivre `apps-script/INSTALLATION.md` (agenda en
-      privé, compte Stripe, programme Google), puis renseigner
-      `API_RESERVATION` dans `calendrier.js`
-- [ ] Écrire `cgv.html` (conditions générales de vente), liée depuis la page
-      de réservation en mode paiement
-- [ ] Ajouter des mentions légales et des conditions générales de vente
-      (obligatoires pour un site qui propose des séjours payants)
+- [x] Programme Google installé et testé en mode test (Stripe `sk_test_`)
+- [ ] Paiement en ligne : activer le compte Stripe, remplacer la clé par
+      `sk_live_…`, puis passer `PAIEMENT_EN_LIGNE` à `true` dans `calendrier.js`
+- [ ] Compléter et faire relire `cgv.html` et `mentions-legales.html`
+      (brouillons), puis les publier avec un lien dans le pied de page
 - [ ] Retirer la balise `noindex` de `index.html` et `reservation.html` lors de la mise en ligne
       définitive (voir le commentaire dans le `<head>`)

@@ -86,7 +86,9 @@ sur la page de paiement.
 
 Cette adresse n'est pas secrète (le site l'utilisera publiquement) : on peut
 la transmettre pour qu'elle soit renseignée dans `calendrier.js`
-(`const API_RESERVATION = '…/exec';`).
+(`const API_GOOGLE = '…/exec';`). Le planning du site est alors lu en
+direct ; le paiement en ligne ne s'ouvre qu'avec
+`const PAIEMENT_EN_LIGNE = true;`.
 
 ## 5. Essayer (mode test)
 
@@ -140,7 +142,7 @@ version** → **Déployer**. L'adresse `/exec` ne change pas.
 ## Bon à savoir
 
 - Si le programme ne répond pas, le planning du site retombe sur
-  `dispos.json` (tâche GitHub toutes les 10 minutes), et la page de
+  `dispos.json` (copie de secours mise à jour par une tâche GitHub), et la page de
   réservation affiche un message d'erreur avec le numéro de téléphone.
 - Un compte Gmail gratuit peut envoyer environ 100 emails par jour : large
   pour un gîte (2 emails par réservation).

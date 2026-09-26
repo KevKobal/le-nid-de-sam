@@ -5,21 +5,24 @@
    - reservation.html : calendrier où le visiteur choisit ses dates
      (attribut data-choix sur l'élément .cal).
 
-   Les nuits réservées et les tarifs particuliers sont lus dans dispos.json,
-   que la tâche GitHub « Disponibilités » met à jour toutes les 10 minutes à
-   partir de l'agenda Google « Le Nid de Sam » (voir le README). En ligne,
-   le fichier est lu directement sur GitHub (à jour à 5 min près, sans
-   attendre la republication du site) ; en local, à côté de la page. */
+   Les nuits réservées et les tarifs particuliers sont lus en direct dans
+   l'agenda Google « Le Nid de Sam », par le programme Google (API_GOOGLE,
+   voir apps-script/). S'il ne répond pas, ils sont lus dans dispos.json,
+   copie que la tâche GitHub « Disponibilités » met à jour de temps en temps
+   (GitHub espace ces tâches de plusieurs heures en pratique). */
 
 /* ═══════════════════════════════════════════════════════════════════
-   RÉSERVATION EN LIGNE — adresse du programme Google (se termine par /exec)
+   PROGRAMME GOOGLE — adresse (se termine par /exec) et paiement en ligne
 
-   Vide : le site fonctionne en « demande par email », sans paiement en
-   ligne, et le planning vient de dispos.json (tâche GitHub).
-   Renseignée : le planning est lu en direct dans l'agenda, et la page de
-   réservation propose le paiement en ligne (voir apps-script/INSTALLATION.md).
+   API_GOOGLE sert toujours au planning en direct.
+   PAIEMENT_EN_LIGNE = false : le site fonctionne en « demande par email ».
+   PAIEMENT_EN_LIGNE = true : la page de réservation propose le paiement en
+   ligne (voir apps-script/INSTALLATION.md). À n'activer qu'avec la clé
+   Stripe réelle et les conditions générales de vente publiées.
    ═══════════════════════════════════════════════════════════════════ */
-const API_RESERVATION = '';
+const API_GOOGLE = 'https://script.google.com/macros/s/AKfycbxwypXVdo8k2SDQqcZgfTTaTTbIPDCivgaH0JgULARTylgcDfF1i1cW_lBy0dKpxR4r/exec';
+const PAIEMENT_EN_LIGNE = false;
+const API_RESERVATION = PAIEMENT_EN_LIGNE ? API_GOOGLE : '';
 const MODE = API_RESERVATION ? 'paiement' : 'demande';
 
 // Textes propres à chaque mode : data-mode="paiement" ou data-mode="demande"
@@ -74,12 +77,12 @@ const phraseNuitsPrises = (prises) => {
    CALENDRIER DES DISPONIBILITÉS — rien à modifier ici
    ═══════════════════════════════════════════════════════════════════ */
 const Calendrier = (() => {
-  // Planning : en direct depuis l'agenda si le programme de réservation est
-  // installé, sinon (ou s'il ne répond pas) depuis dispos.json
+  // Planning : en direct depuis l'agenda (programme Google), sinon (s'il ne
+  // répond pas) depuis dispos.json
   const FICHIER = location.hostname.endsWith('github.io')
     ? 'https://raw.githubusercontent.com/KevKobal/le-nid-de-sam/main/dispos.json'
     : 'dispos.json';
-  const SOURCES = [API_RESERVATION && API_RESERVATION + '?action=dispos', FICHIER].filter(Boolean);
+  const SOURCES = [API_GOOGLE && API_GOOGLE + '?action=dispos', FICHIER].filter(Boolean);
   const MOIS_MAX = 17;          // on peut feuilleter jusqu'à 17 mois après le mois en cours
   const PERIME_JOURS = 7;       // au-delà, les données sont jugées trop anciennes pour être affichées
 
@@ -169,12 +172,14 @@ const Calendrier = (() => {
     });
   }
 
+  // Résultat : les données, et si elles viennent du planning en direct
   const lire = (i = 0) => fetch(SOURCES[i], { cache: 'no-cache' })
     .then(r => r.ok ? r.json() : Promise.reject(new Error('planning indisponible')))
+    .then(donnees => ({ donnees, direct: SOURCES[i] !== FICHIER }))
     .catch(err => i + 1 < SOURCES.length ? lire(i + 1) : Promise.reject(err));
 
   const charger = () => lire()
-    .then(donnees => {
+    .then(({ donnees, direct }) => {
       const maj = depuisIso(donnees.maj);
       if ((aujourdhui - maj) / 864e5 > PERIME_JOURS) return;   // données trop anciennes : on n'affiche rien
       dispos.reserve.clear();
@@ -186,9 +191,10 @@ const Calendrier = (() => {
         for (let d = depuisIso(debut); d < depuisIso(fin); d.setDate(d.getDate() + 1)) dispos.tarifs.set(iso(d), prix);
       }
       const texteMaj = document.getElementById('cal-maj');
-      if (texteMaj) texteMaj.textContent = MODE === 'paiement'
-        ? 'Planning à jour en temps réel.'
-        : `Mis à jour le ${maj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}. Les disponibilités restent à confirmer lors de votre demande.`;
+      const aJour = direct ? 'Planning à jour en temps réel.'
+        : `Mis à jour le ${maj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}.`;
+      if (texteMaj) texteMaj.textContent = MODE === 'paiement' ? aJour
+        : `${aJour} Les disponibilités restent à confirmer lors de votre demande.`;
       afficher();
       // Éléments masqués tant que les disponibilités ne sont pas connues
       document.querySelectorAll('[data-si-dispos]').forEach(el => { el.hidden = false; });

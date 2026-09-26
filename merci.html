@@ -70,9 +70,9 @@
   // pendant une minute avant d'afficher « en cours de validation »
   let essais = 0;
   const verifier = async () => {
-    if (!session || !API_RESERVATION) return montrer('probleme');
+    if (!session || !API_GOOGLE) return montrer('probleme');
     try {
-      const r = await fetch(`${API_RESERVATION}?action=confirmer&session_id=${encodeURIComponent(session)}`);
+      const r = await fetch(`${API_GOOGLE}?action=confirmer&session_id=${encodeURIComponent(session)}`);
       const rep = await r.json();
       if (rep.etat === 'confirme') {
         const x = rep.resume || {};
