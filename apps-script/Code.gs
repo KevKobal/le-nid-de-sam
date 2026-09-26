@@ -50,6 +50,7 @@ const CONFIG = {
 const PREFIXE_ATTENTE = 'En attente de paiement';
 const PREFIXE_RESERVE = 'Réservé';
 const MARQUE_SITE = 'le-nid-de-sam';
+const MARQUE_EMAILS = 'emails: envoyés';
 
 /* ═══════════════════════════ Points d'entrée ═══════════════════════════ */
 
@@ -428,7 +429,8 @@ function finaliser(sessionId) {
     if (s.payment_status !== 'paid') return { ok: true, etat: s.status === 'expired' ? 'expire' : 'en_attente', resume };
 
     let ev = trouverEvenement(m.jeton, m.arrivee, m.depart);
-    if (ev && (ev.getTitle() || '').indexOf(PREFIXE_RESERVE) === 0) return { ok: true, etat: 'confirme', resume };
+    const dejaReserve = !!ev && (ev.getTitle() || '').indexOf(PREFIXE_RESERVE) === 0;
+    if (dejaReserve && emailsEnvoyes(ev)) return { ok: true, etat: 'confirme', resume };
 
     const v = {
       arrivee: m.arrivee, depart: m.depart, nuits: resume.nuits, prenom: m.prenom, nom: m.nom,
@@ -438,25 +440,34 @@ function finaliser(sessionId) {
     const montant = { total: resume.montant, sejour: resume.montant - v.coffrets.reduce((t, c) => t + CONFIG.COFFRETS[c].prix, 0), coffrets: v.coffrets.map(c => CONFIG.COFFRETS[c]) };
     const cree = ev ? new Date((((ev.getDescription() || '').match(/cree: (\S+)/) || [])[1]) || Date.now()) : new Date();
 
-    if (!ev) {
-      // La mise de côté a disparu (supprimée à la main ?) : on vérifie que les
-      // nuits sont toujours libres avant de créer la réservation.
-      const { reserve } = lireAgenda(v.arrivee, v.depart);
-      const prises = [];
-      for (let n = v.arrivee; n < v.depart; n = ajouterJours(n, 1)) if (reserve.has(n)) prises.push(n);
-      if (prises.length) {
-        alerterConflit(v, montant, s);
-        return { ok: true, etat: 'conflit', resume };
+    if (!dejaReserve) {
+      if (!ev) {
+        // La mise de côté a disparu (supprimée à la main ?) : on vérifie que les
+        // nuits sont toujours libres avant de créer la réservation.
+        const { reserve } = lireAgenda(v.arrivee, v.depart);
+        const prises = [];
+        for (let n = v.arrivee; n < v.depart; n = ajouterJours(n, 1)) if (reserve.has(n)) prises.push(n);
+        if (prises.length) {
+          alerterConflit(v, montant, s);
+          return { ok: true, etat: 'conflit', resume };
+        }
+        ev = agenda().createEvent('…', dateParis(v.arrivee, CONFIG.HEURE_ARRIVEE), dateParis(v.depart, CONFIG.HEURE_DEPART));
       }
-      ev = agenda().createEvent('…', dateParis(v.arrivee, CONFIG.HEURE_ARRIVEE), dateParis(v.depart, CONFIG.HEURE_DEPART));
+      ev.setTitle(`${PREFIXE_RESERVE} – ${v.prenom} ${v.nom}`);
+      ev.setDescription(descriptionEvenement(v, montant, { jeton: m.jeton, cree, session: s.id, paye: new Date() }));
+      try { ev.setColor(CalendarApp.EventColor.GREEN); } catch (e) { /* couleur facultative */ }
+      CacheService.getScriptCache().remove('dispos');
     }
-    ev.setTitle(`${PREFIXE_RESERVE} – ${v.prenom} ${v.nom}`);
-    ev.setDescription(descriptionEvenement(v, montant, { jeton: m.jeton, cree, session: s.id, paye: new Date() }));
-    try { ev.setColor(CalendarApp.EventColor.GREEN); } catch (e) { /* couleur facultative */ }
-    CacheService.getScriptCache().remove('dispos');
 
-    envoyerConfirmation(v, montant);
-    prevenirProprietaire(v, montant);
+    // La réservation est acquise même si un email ne part pas : l'envoi est
+    // alors retenté au prochain passage (page merci ou verifierPaiements).
+    try {
+      envoyerConfirmation(v, montant);
+      prevenirProprietaire(v, montant);
+      ev.setDescription((ev.getDescription() || '') + '\n' + MARQUE_EMAILS);
+    } catch (e) {
+      console.error(e);
+    }
     return { ok: true, etat: 'confirme', resume };
   } finally {
     verrou.releaseLock();
@@ -479,6 +490,9 @@ function liberer(jeton) {
   return { ok: true, etat: 'libere' };
 }
 
+function emailsEnvoyes(ev) {
+  return (ev.getDescription() || '').indexOf(MARQUE_EMAILS) >= 0;
+}
 function finaliserSiPaye(sessionId) {
   try { return finaliser(sessionId).etat; } catch (e) { console.error(e); return 'erreur'; }
 }
@@ -601,6 +615,7 @@ function installer() {
       'Autorisations d\u2019accès aux événements → décocher « Rendre disponible publiquement », puis relancer installer().');
   }
   stripe('get', 'checkout/sessions', { limit: 1 });            // vérifie la clé Stripe
+  MailApp.getRemainingDailyQuota();                            // demande l'autorisation d'envoyer les emails
   ScriptApp.getProjectTriggers()
     .filter(t => t.getHandlerFunction() === 'verifierPaiements')
     .forEach(t => ScriptApp.deleteTrigger(t));
