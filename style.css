@@ -76,6 +76,10 @@ header.nav.scrolled .nav-reserver { background: var(--terra); border-color: var(
 header.nav.scrolled .nav-reserver:hover { background: var(--terra-dark); border-color: var(--terra-dark); }
 .nav-reserver:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
 @media (max-width: 760px) { .nav-reserver { margin-left: auto; padding: 7px 14px; font-size: .92rem; } }
+/* Variante téléphone de l'en-tête (pages intérieures) : icône seule */
+.nav-tel { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; padding: 0; }
+.nav-tel svg { width: 20px; height: 20px; }
+@media (max-width: 760px) { .nav-tel { padding: 0; } }
 
 /* ---------- Hero : la photo s'ouvre au défilement ---------- */
 /* --p va de 0 (petite vignette) à 1 (plein écran). Valeur par défaut 1 :
@@ -200,14 +204,14 @@ header.nav.scrolled .nav-reserver:hover { background: var(--terra-dark); border-
   text-underline-offset: 5px; text-decoration-thickness: 1px;
 }
 .link-light:hover { text-decoration-thickness: 2px; }
-/* Bouton téléphone, à côté de « Réserver » sur la photo de l'accueil */
+/* Bouton téléphone (icône seule), à côté de « Réserver » sur la photo de l'accueil */
 .btn-tel {
-  gap: 10px; color: #fff; border: 1.5px solid rgba(255, 255, 255, .75);
-  background: rgba(0, 0, 0, .18); font-variant-numeric: tabular-nums; white-space: nowrap;
+  padding: 0; width: 56px; height: 56px; color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, .75); background: rgba(0, 0, 0, .18);
 }
 .btn-tel:hover { background: rgba(255, 255, 255, .14); }
-.btn-tel svg { width: 18px; height: 18px; flex: none; }
-@media (max-width: 420px) { .sh-copy .cta-row .btn { flex: 1 1 100%; } }
+.btn-tel svg { width: 22px; height: 22px; flex: none; }
+@media (max-width: 420px) { .sh-copy .cta-row .btn-primary { flex: 1 1 auto; } }
 
 /* ---------- Sections ---------- */
 section { padding: 104px 0; }
