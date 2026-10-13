@@ -29,7 +29,7 @@
 
 const CONFIG = {
   AGENDA_ID: '6f457dc5e291303a514794c7bf1a1250cdabaddd1aca3b127147487893eaa8b6@group.calendar.google.com',
-  SITE: 'https://kevkobal.github.io/le-nid-de-sam/',
+  SITE: 'https://leniddesam.fr/',
   FUSEAU: 'Europe/Paris',
   // Prix : les mêmes que dans calendrier.js (site). Taxe de séjour comprise.
   TARIF_SEMAINE: 60,

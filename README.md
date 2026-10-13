@@ -6,7 +6,11 @@ Site statique en HTML/CSS/JavaScript, sans dépendance ni étape de construction
 
 ## Aperçu en ligne
 
-Publié via GitHub Pages — voir le lien dans la description du dépôt.
+En ligne sur **https://leniddesam.fr** (GitHub Pages, domaine chez OVH).
+
+DNS (zone OVH) : 4 enregistrements A vers GitHub (185.199.108.153, .109, .110,
+.111) et `www` en CNAME vers `kevkobal.github.io.` ; les MX (emails OVH) sont
+inchangés. Le fichier `CNAME` du dépôt porte le domaine : ne pas le supprimer.
 
 ## Contenu
 

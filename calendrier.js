@@ -79,7 +79,7 @@ const phraseNuitsPrises = (prises) => {
 const Calendrier = (() => {
   // Planning : en direct depuis l'agenda (programme Google), sinon (s'il ne
   // répond pas) depuis dispos.json
-  const FICHIER = location.hostname.endsWith('github.io')
+  const FICHIER = !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)
     ? 'https://raw.githubusercontent.com/KevKobal/le-nid-de-sam/main/dispos.json'
     : 'dispos.json';
   const SOURCES = [API_GOOGLE && API_GOOGLE + '?action=dispos', FICHIER].filter(Boolean);
