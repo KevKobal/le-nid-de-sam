@@ -115,10 +115,10 @@ par le script pour ne pas apparaître en clair dans le code source (anti-spam).
 Deux modes, selon la ligne `const PAIEMENT_EN_LIGNE = …;` en tête de
 `calendrier.js` :
 
-- **`false` (mode actuel) — demande par email** : le client envoie une demande ;
+- **`false` — demande par email** : le client envoie une demande ;
   le propriétaire vérifie, note la réservation dans l'agenda et répond avec un
   lien de paiement (lien de paiement Stripe ou `paypal.me/<nom>/<montant>`).
-- **`true` — paiement en ligne** : le programme Google (`apps-script/`)
+- **`true` (mode actuel, depuis le 13/10/2026) — paiement en ligne** : le programme Google (`apps-script/`)
   vérifie les dates dans l'agenda en temps réel, calcule le prix, met les
   dates de côté 30 minutes et envoie le client payer sur Stripe. Dès que le
   paiement passe, la réservation est inscrite dans l'agenda, le client reçoit
@@ -132,11 +132,13 @@ Les textes propres à chaque mode portent l'attribut `data-mode="demande"` ou
 
 - [ ] Reprendre les photos une fois la maison entièrement aménagée
 - [x] Programme Google installé et testé en mode test (Stripe `sk_test_`)
-- [ ] Paiement en ligne : activer le compte Stripe, remplacer la clé par
-      `sk_live_…`, puis passer `PAIEMENT_EN_LIGNE` à `true` dans `calendrier.js`
+- [x] Paiement en ligne ouvert le 13/10/2026 (compte Stripe activé, clé de
+      production dans le programme Google, `PAIEMENT_EN_LIGNE = true`)
 - [x] `cgv.html` et `mentions-legales.html` publiées, liées en pied de page
-- [ ] Avant d'ouvrir le paiement : ajouter dans `cgv.html` le numéro
-      d'enregistrement du meublé de tourisme et le médiateur de la
-      consommation (emplacements en commentaire), puis faire relire
-- [ ] Retirer la balise `noindex` de `index.html` et `reservation.html` lors de la mise en ligne
-      définitive (voir le commentaire dans le `<head>`)
+- [ ] **Médiateur de la consommation (obligatoire)** : adhérer (CM2C conseillé,
+      48 € / 3 ans) et l'ajouter à l'article 12 de `cgv.html` (emplacement en
+      commentaire)
+- [ ] Numéro d'enregistrement national du meublé de tourisme : s'enregistrer
+      dès l'ouverture du téléservice national et l'ajouter à `cgv.html`
+- [ ] Faire relire les CGV et les mentions légales
+- [x] Site ouvert aux moteurs de recherche (balises `noindex` retirées, sauf `merci.html`)

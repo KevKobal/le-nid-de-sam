@@ -21,7 +21,7 @@
    Stripe réelle et les conditions générales de vente publiées.
    ═══════════════════════════════════════════════════════════════════ */
 const API_GOOGLE = 'https://script.google.com/macros/s/AKfycbxwypXVdo8k2SDQqcZgfTTaTTbIPDCivgaH0JgULARTylgcDfF1i1cW_lBy0dKpxR4r/exec';
-const PAIEMENT_EN_LIGNE = false;
+const PAIEMENT_EN_LIGNE = true;
 const API_RESERVATION = PAIEMENT_EN_LIGNE ? API_GOOGLE : '';
 const MODE = API_RESERVATION ? 'paiement' : 'demande';
 

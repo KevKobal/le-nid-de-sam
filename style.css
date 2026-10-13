@@ -550,7 +550,6 @@ footer .brand-foot { font-family: var(--police-titre); font-size: 1.2rem; color:
 .legal p + p, .legal ul + p, .legal p + ul { margin-top: 12px; }
 .legal ul { margin-left: 1.2em; }
 .legal li + li { margin-top: 6px; }
-.legal .avis { margin-top: 28px; padding: 16px 18px; border-left: 3px solid var(--wood); background: var(--teinte); }
 
 /* Liens légaux du pied de page */
 .foot-liens { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 22px; margin-top: 14px; font-size: .88rem; }
