@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /merci.html
+Disallow: /apps-script/
+Disallow: /scripts/
+
+Sitemap: https://leniddesam.fr/sitemap.xml
