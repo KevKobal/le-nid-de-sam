@@ -52,6 +52,7 @@ const PREFIXE_ATTENTE = 'En attente de paiement';
 const PREFIXE_RESERVE = 'Réservé';
 const MARQUE_SITE = 'le-nid-de-sam';
 const MARQUE_EMAILS = 'emails: envoyés';
+const PREFIXE_TRACE = 'reservation:';   // propriété du script : session Stripe déjà transformée en réservation
 
 /* ═══════════════════════════ Points d'entrée ═══════════════════════════ */
 
@@ -432,6 +433,11 @@ function finaliser(sessionId) {
     let ev = trouverEvenement(m.jeton, m.arrivee, m.depart);
     const dejaReserve = !!ev && (ev.getTitle() || '').indexOf(PREFIXE_RESERVE) === 0;
     if (dejaReserve && emailsEnvoyes(ev)) return { ok: true, etat: 'confirme', resume };
+    // Réservation déjà enregistrée, puis supprimée de l'agenda par le
+    // propriétaire (annulation) : on ne la recrée pas et on ne renvoie rien.
+    const traces = PropertiesService.getScriptProperties();
+    const trace = PREFIXE_TRACE + s.id;
+    if (!ev && traces.getProperty(trace)) return { ok: true, etat: 'annule', resume };
 
     const v = {
       arrivee: m.arrivee, depart: m.depart, nuits: resume.nuits, prenom: m.prenom, nom: m.nom,
@@ -459,6 +465,7 @@ function finaliser(sessionId) {
       try { ev.setColor(CalendarApp.EventColor.GREEN); } catch (e) { /* couleur facultative */ }
       CacheService.getScriptCache().remove('dispos');
     }
+    if (!traces.getProperty(trace)) traces.setProperty(trace, new Date().toISOString());
 
     // La réservation est acquise même si un email ne part pas : l'envoi est
     // alors retenté au prochain passage (page merci ou verifierPaiements).
@@ -523,6 +530,14 @@ function verifierPaiements() {
     ev.deleteEvent();
   });
   CacheService.getScriptCache().remove('dispos');
+
+  // 3. Ménage : traces de réservations de plus de 7 jours (le rattrapage du
+  //    point 1 ne remonte qu'à 3 heures)
+  const props = PropertiesService.getScriptProperties();
+  const vieux = Date.now() - 7 * 864e5;
+  Object.entries(props.getProperties()).forEach(([k, val]) => {
+    if (k.indexOf(PREFIXE_TRACE) === 0 && Date.parse(val) < vieux) props.deleteProperty(k);
+  });
 }
 
 /* ═══════════════════════════ Emails ═══════════════════════════ */
