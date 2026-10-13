@@ -111,7 +111,8 @@ Seulement quand tout est prêt :
 2. Compte Stripe **activé** (Stripe demande notamment une pièce d'identité et
    un RIB).
 3. Dans Stripe, mode test **désactivé** → Développeurs → Clés API → copier la
-   clé secrète **`sk_live_…`**.
+   clé secrète **`sk_live_…`** (bouton « Créer une clé secrète » s'il n'y en a pas ;
+   une clé restreinte `rk_live_…` avec *Checkout Sessions : Écriture* convient aussi).
 4. Dans le programme : Propriétés du script → remplacer la valeur de
    `STRIPE_SECRET_KEY` par la clé `sk_live_…` → relancer **`installer`**. Le
    journal doit afficher `Mode Stripe : PAIEMENTS RÉELS`.

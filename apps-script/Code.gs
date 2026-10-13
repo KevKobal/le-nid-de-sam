@@ -21,7 +21,8 @@
  *
  * Aucune donnée secrète dans ce fichier (il est publié sur GitHub). Réglages
  * dans Paramètres du projet → Propriétés du script :
- *   STRIPE_SECRET_KEY   clé secrète Stripe (sk_test_… pour les essais, sk_live_… ensuite)
+ *   STRIPE_SECRET_KEY   clé secrète Stripe (sk_test_… pour les essais, sk_live_… ensuite ;
+ *                       une clé restreinte rk_live_… avec Checkout Sessions en écriture suffit)
  *   ADRESSE             adresse complète de la maison, envoyée au client après paiement
  *   EMAIL_PROPRIETAIRE  (facultatif) destinataire des avis ; par défaut, ce compte Google
  */
@@ -621,6 +622,6 @@ function installer() {
     .forEach(t => ScriptApp.deleteTrigger(t));
   ScriptApp.newTrigger('verifierPaiements').timeBased().everyMinutes(5).create();
   const cle = props.getProperty('STRIPE_SECRET_KEY');
-  console.log('Installation terminée. Mode Stripe : ' + (cle.indexOf('sk_live_') === 0 ? 'PAIEMENTS RÉELS' : 'essai (test)') +
+  console.log('Installation terminée. Mode Stripe : ' + (/^[sr]k_live_/.test(cle) ? 'PAIEMENTS RÉELS' : 'essai (test)') +
     '. Avis envoyés à : ' + emailProprietaire());
 }
