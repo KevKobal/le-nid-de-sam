@@ -77,8 +77,13 @@ lance en pratique que toutes les quelques heures.
   code ni dans les journaux. Plusieurs adresses possibles, séparées par des
   espaces (par exemple Airbnb et Booking plus tard).
 - L'agenda Google n'a **pas besoin d'être public**.
-- Si un agenda est illisible, `dispos.json` n'est pas modifié (jamais de
-  données partielles). La tâche apparaît alors en échec dans l'onglet Actions.
+- Si l'agenda répond mal (erreur passagère de Google), la tâche **réessaie
+  jusqu'à 4 fois** (attente de 3, 6 puis 12 s) avant d'abandonner : un simple
+  hoquet ne déclenche donc plus d'alerte.
+- Si l'agenda reste illisible après ces essais, `dispos.json` n'est pas modifié
+  (jamais de données partielles) et la tâche apparaît en échec dans l'onglet
+  Actions. Un échec isolé de temps en temps est normal et sans conséquence ;
+  seuls des échecs répétés méritent de vérifier le secret `ICAL_URLS`.
 - Le site masque le calendrier si `dispos.json` n'existe pas ou date de plus
   de 7 jours, plutôt que d'afficher des dates périmées.
 - Lancer une mise à jour immédiate : onglet **Actions** → « Disponibilités »

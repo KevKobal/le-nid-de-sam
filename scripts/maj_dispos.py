@@ -31,6 +31,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -41,14 +42,34 @@ PARIS = ZoneInfo("Europe/Paris")
 SORTIE = Path(__file__).resolve().parent.parent / "dispos.json"
 HORIZON_JOURS = 550  # environ 18 mois de calendrier à venir
 
+# Les agendas Google renvoient de temps en temps une erreur passagère (HTTP 5xx,
+# coupure réseau, ou une page d'erreur au lieu de l'iCal). Plutôt que d'abandonner
+# au premier essai — ce qui marquait la tâche en échec et envoyait une alerte pour
+# rien —, on réessaie quelques fois avec une attente qui s'allonge (3 s, 6 s, 12 s).
+# Réglables par variable d'environnement, surtout pour les tests.
+TENTATIVES = int(os.environ.get("DISPOS_TENTATIVES", "4"))
+ATTENTE_INITIALE = float(os.environ.get("DISPOS_ATTENTE", "3"))
+
 
 def lire_source(url: str) -> str:
     requete = urllib.request.Request(url, headers={"User-Agent": "le-nid-de-sam-dispos"})
-    with urllib.request.urlopen(requete, timeout=30) as reponse:
-        texte = reponse.read().decode("utf-8", errors="replace")
-    if "BEGIN:VCALENDAR" not in texte:
-        raise ValueError("la réponse n'est pas un agenda iCal")
-    return texte
+    attente = ATTENTE_INITIALE
+    for essai in range(1, TENTATIVES + 1):
+        try:
+            with urllib.request.urlopen(requete, timeout=30) as reponse:
+                texte = reponse.read().decode("utf-8", errors="replace")
+            if "BEGIN:VCALENDAR" not in texte:
+                raise ValueError("la réponse n'est pas un agenda iCal")
+            return texte
+        except Exception as erreur:
+            if essai == TENTATIVES:
+                raise
+            # ne jamais afficher l'URL : elle est secrète
+            print(f"  tentative {essai}/{TENTATIVES} échouée ({type(erreur).__name__}), "
+                  f"nouvel essai dans {attente:g} s…", file=sys.stderr)
+            time.sleep(attente)
+            attente *= 2
+    raise RuntimeError("échec inattendu de lire_source")  # inatteignable
 
 
 def deplier(texte: str) -> list[str]:
