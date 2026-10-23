@@ -100,8 +100,8 @@ header.nav.scrolled .nav-reserver:hover { background: var(--terra-dark); border-
 }
 .hero-centre { width: min(760px, 100%); }
 .hero-titre {
-  font-family: "Michroma", var(--police-texte); font-weight: 400;
-  font-size: clamp(2.4rem, 7.2vw, 6.5rem); line-height: 1.05; letter-spacing: .02em;
+  font-family: var(--police-titre); font-weight: 500;
+  font-size: clamp(2.8rem, 8.4vw, 7.4rem); line-height: 1; letter-spacing: .04em;
   text-transform: uppercase; text-shadow: 0 2px 30px rgba(0, 0, 0, .18);
 }
 .hero-lieu {
