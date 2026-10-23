@@ -9,7 +9,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2324282b'/><path d='M7 15.2 16 8l9 7.2' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/><path d='M9.6 14.6V24h12.8v-9.4' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Michroma&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
 <!-- Signale que JavaScript tourne : les apparitions au défilement ne masquent
      le contenu que dans ce cas. Sans JS, tout reste visible. -->
 <script>document.documentElement.classList.add('js');</script>
@@ -33,37 +33,29 @@
 <main id="top">
 
   <!-- ======= HERO ======= -->
-  <section class="scroll-hero" aria-label="Présentation">
-   <div class="sh-stage" id="sh-stage">
-    <div class="sh-bg" aria-hidden="true">
-      <video id="sh-video" muted loop playsinline autoplay preload="auto" poster="img/paysage-poster.jpg">
-        <source data-src="video/paysage.mp4" type="video/mp4">
-      </video>
+  <section class="hero" aria-label="Présentation">
+    <img class="hero-photo" src="img/moselle-hero.jpg"
+         srcset="img/moselle.jpg 1600w, img/moselle-hero.jpg 2400w" sizes="100vw"
+         alt="Les berges de la Moselle à Golbey, à quelques minutes à pied de la maison"
+         fetchpriority="high">
+    <div class="hero-centre">
+      <h1 class="hero-titre">Le Nid<br>de Sam</h1>
+      <p class="hero-lieu">Golbey · Vosges</p>
+      <!-- Formulaire classique : fonctionne aussi sans JavaScript.
+           Les dates arrivent dans l'adresse de reservation.html. -->
+      <form class="hero-dates" action="reservation.html" method="get">
+        <div>
+          <label for="h-arrivee">Arrivée</label>
+          <input id="h-arrivee" name="arrivee" type="date">
+        </div>
+        <div>
+          <label for="h-depart">Départ</label>
+          <input id="h-depart" name="depart" type="date">
+        </div>
+        <button type="submit">Voir les disponibilités</button>
+      </form>
+      <p class="hero-prix">Maison entière pour deux, dès 60&nbsp;€ la nuit</p>
     </div>
-    <div class="sh-media">
-      <img src="img/maison.jpg" alt="La maison indépendante de plain-pied et sa terrasse couverte">
-    </div>
-    <div class="sh-titles" aria-hidden="true">
-      <span>Le Nid</span>
-      <span>de Sam</span>
-    </div>
-    <p class="sh-hint">Défilez pour découvrir
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg>
-    </p>
-    <div class="sh-copy">
-     <div class="wrap">
-      <h1>Une maison rien qu'à vous, au cœur de Golbey</h1>
-      <p class="lede">Maison indépendante de plain-pied avec terrasse couverte et parking privé, à quelques pas de la Moselle, du port et des commerces. Le point de chute idéal pour découvrir Épinal et les Vosges.</p>
-      <p class="sh-facts"><span>Dès 60&nbsp;€ la nuit</span><span>2 voyageurs</span><span>1 chambre, lit double</span><span>Parking privé</span><span>Maison entière</span></p>
-      <div class="cta-row">
-        <a class="btn btn-primary" href="reservation.html">Réserver un séjour</a>
-        <a class="btn btn-tel" href="tel:+33631269899" aria-label="Appeler le 06 31 26 98 99" title="06 31 26 98 99">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>
-        </a>
-      </div>
-     </div>
-    </div>
-   </div>
   </section>
 
   <!-- ======= LA MAISON ======= -->
@@ -325,53 +317,25 @@
 
 <script src="calendrier.js"></script>
 <script>
-  // Hero : la photo s'ouvre au fil du défilement, et fond du menu
+  // En-tête : fond clair une fois la photo d'accueil passée
   const nav = document.getElementById('nav');
-  const heroSection = document.querySelector('.scroll-hero');
-  const stage = document.getElementById('sh-stage');
-  const calme = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const hero = document.querySelector('.hero');
+  const majNav = () => nav.classList.toggle('scrolled', window.scrollY > hero.offsetHeight - 90);
+  majNav();
+  window.addEventListener('scroll', majNav, { passive: true });
+  window.addEventListener('resize', majNav);
 
-  let enAttente = false;
-  const majScroll = () => {
-    enAttente = false;
-    // Progression 0 → 1 sur la partie défilante de la section (hors écran collé)
-    const course = heroSection.offsetHeight - window.innerHeight;
-    const p = calme.matches || course <= 0
-      ? 1
-      : Math.min(1, Math.max(0, window.scrollY / course));
-    stage.style.setProperty('--p', p.toFixed(4));
-    // Le menu ne prend son fond clair qu'une fois le hero passé
-    nav.classList.toggle('scrolled', window.scrollY > heroSection.offsetHeight - 90);
-  };
-  const planifier = () => { if (!enAttente) { enAttente = true; requestAnimationFrame(majScroll); } };
-
-  majScroll();
-  window.addEventListener('scroll', planifier, { passive: true });
-  window.addEventListener('resize', planifier);
-  calme.addEventListener('change', majScroll);
-
-  // Vidéo du paysage en fond, y compris sur téléphone.
-  // On respecte tout de même deux choix explicites de l'utilisateur : « réduire
-  // les animations » et l'économiseur de données / réseau très lent (2g) — dans
-  // ces cas, on garde seulement le poster pour ne pas imposer le téléchargement.
+  // Dates de l'accueil : pas de date passée, et départ proposé au lendemain
   (() => {
-    const video = document.getElementById('sh-video');
-    const source = video && video.querySelector('source');
-    if (!source) return;
-    const eco = navigator.connection && (navigator.connection.saveData ||
-                /2g|slow/.test(navigator.connection.effectiveType || ''));
-    if (calme.matches || eco) return;
-    // On ne charge la vidéo que maintenant (source différée) : le poster
-    // s'affiche d'emblée, la vidéo prend le relais dès qu'elle peut jouer.
-    source.src = source.dataset.src;
-    video.load();
-    const lancer = () => video.play().then(() => video.classList.add('pret')).catch(() => {});
-    lancer();
-    // Filet de sécurité : si le navigateur bloque la lecture auto (iPhone en
-    // mode économie d'énergie, politiques d'autoplay…), on retente au premier
-    // geste du visiteur — toucher, cliquer ou faire défiler suffit.
-    ['touchstart', 'pointerdown', 'scroll'].forEach(ev =>
-      window.addEventListener(ev, lancer, { once: true, passive: true }));
+    const a = document.getElementById('h-arrivee');
+    const d = document.getElementById('h-depart');
+    a.min = iso(new Date());
+    d.min = lendemain(a.min);
+    a.addEventListener('change', () => {
+      if (!a.value) return;
+      d.min = lendemain(a.value);
+      if (!d.value || d.value <= a.value) d.value = lendemain(a.value);
+    });
   })();
 
   // Apparition douce des sections. Filet de sécurité : si l'observateur

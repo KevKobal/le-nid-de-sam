@@ -239,6 +239,18 @@
   form.querySelectorAll('input[name="coffret"]').forEach(c => c.addEventListener('change', majSejour));
   document.addEventListener('dispos-chargees', majSejour);
 
+  // Dates choisies sur l'accueil (reservation.html?arrivee=…&depart=…)
+  (() => {
+    const params = new URLSearchParams(location.search);
+    const dateValide = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v || '') && v >= aujourdhui;
+    const a = params.get('arrivee'), d = params.get('depart');
+    if (!dateValide(a)) return;
+    champArrivee.value = a;
+    if (dateValide(d) && d > a) champDepart.value = d;
+    Calendrier.definir(champArrivee.value, champDepart.value);
+    majSejour();
+  })();
+
   // Champs obligatoires seulement en mode paiement (ex. conditions générales de vente)
   form.querySelectorAll('[data-requis-paiement]').forEach(el => { el.required = MODE === 'paiement'; });
 

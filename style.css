@@ -81,110 +81,59 @@ header.nav.scrolled .nav-reserver:hover { background: var(--terra-dark); border-
 .nav-tel svg { width: 20px; height: 20px; }
 @media (max-width: 760px) { .nav-tel { padding: 0; } }
 
-/* ---------- Hero : la photo s'ouvre au défilement ---------- */
-/* --p va de 0 (petite vignette) à 1 (plein écran). Valeur par défaut 1 :
-   sans JavaScript, le hero s'affiche directement ouvert et lisible. */
-/* padding: 0 indispensable — sinon le hero hérite du padding commun aux <section> */
-.scroll-hero { position: relative; height: 260svh; padding: 0; }
-.sh-stage {
-  --p: 1;
-  --w0: min(74vw, 330px);
-  --h0: min(58svh, 440px);
-  --ix: calc((100vw - var(--w0)) / 2 * (1 - var(--p)));
-  --iy: calc((100svh - var(--h0)) / 2 * (1 - var(--p)));
-  position: sticky; top: 0; height: 100svh;
-  overflow: hidden; isolation: isolate; color: #fff;
+/* ---------- Hero : photo plein écran, nom de la maison en grand ---------- */
+.hero {
+  position: relative; min-height: 100svh; padding: 120px 24px 72px;
+  display: grid; place-items: center; text-align: center;
+  isolation: isolate; color: #fff; background: #20262a;
 }
-/* Voile sombre en haut : garantit la lisibilité du menu à toutes les étapes */
-.sh-stage::before {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 190px; z-index: 2;
-  background: linear-gradient(to bottom, rgba(14, 16, 17, .58), transparent);
-  pointer-events: none;
+.hero-photo {
+  position: absolute; inset: 0; z-index: -2;
+  width: 100%; height: 100%; object-fit: cover; object-position: center 55%;
 }
-/* Fond d'accueil : vidéo du paysage (remplace l'ancien flou).
-   S'efface au fil du défilement, comme le faisait le flou (opacity 1 - p). */
-.sh-bg {
-  position: absolute; inset: 0; z-index: 0; overflow: hidden;
-  background: #121415 url('img/paysage-poster.jpg') center / cover no-repeat;
-  /* L'assombrissement est posé ici, sur le conteneur : il s'applique donc de
-     façon identique à l'image de repli (poster = 1re image de la vidéo) ET à
-     la vidéo. Si la vidéo ne se lance pas, le repli est exactement cette
-     première image, au même rendu que la vidéo. */
-  filter: brightness(.6) saturate(.95);
-  opacity: calc(1 - var(--p));
+/* Voile léger : assez pour lire le blanc (menu en haut, dates en bas),
+   sans éteindre la photo */
+.hero::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(180deg, rgba(10, 14, 18, .45) 0%, rgba(10, 14, 18, .12) 38%,
+              rgba(10, 14, 18, .22) 62%, rgba(10, 14, 18, .62) 100%);
 }
-.sh-bg video {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; object-position: center;
-  opacity: 0; transition: opacity .8s ease;
+.hero-centre { width: min(760px, 100%); }
+.hero-titre {
+  font-family: "Michroma", var(--police-texte); font-weight: 400;
+  font-size: clamp(2.4rem, 7.2vw, 6.5rem); line-height: 1.05; letter-spacing: .02em;
+  text-transform: uppercase; text-shadow: 0 2px 30px rgba(0, 0, 0, .18);
 }
-.sh-bg video.pret { opacity: 1; }
-.sh-media {
-  position: absolute; inset: 0; z-index: 1;
-  clip-path: inset(var(--iy) var(--ix) var(--iy) var(--ix) round calc(26px * (1 - var(--p))));
-  will-change: clip-path;
+.hero-lieu {
+  margin-top: clamp(28px, 4.5vw, 52px);
+  font-size: clamp(.95rem, 1.9vw, 1.5rem); font-weight: 500; line-height: 1.6;
+  letter-spacing: .42em; text-transform: uppercase;
 }
-.sh-media img {
-  /* --shift décale l'image quand elle est réduite, pour que la vignette
-     cadre sur la porte d'entrée (vers 81 % de la largeur de maison.jpg).
-     Il revient à 0 en s'ouvrant. Valeur négative = image poussée vers la
-     gauche. -34 % centre la porte ; la limite au-delà de laquelle le bord
-     droit de l'image entrerait dans la vignette est d'environ -37 % (à
-     901 px de large). Sur petits écrans, c'est object-position qui cadre. */
-  --shift: -34%;
-  width: 100%; height: 100%; object-fit: cover; object-position: 34% 62%;
-  transform: translateX(calc(var(--shift) * (1 - var(--p)))) scale(calc(1.12 - .12 * var(--p)));
+/* Recherche de dates : de simples traits, comme le formulaire du modèle */
+.hero-dates {
+  margin: clamp(40px, 6vw, 64px) auto 0; width: min(560px, 100%);
+  display: grid; grid-template-columns: 1fr 1fr auto; gap: 22px; align-items: end; text-align: left;
 }
-/* Écrans étroits : l'image déborde en largeur, on cadre sur la porte
-   d'entrée, dans la partie droite de la photo */
-@media (max-width: 900px) { .sh-media img { --shift: 0%; object-position: 95% 62%; } }
-.sh-media::after {
-  content: ""; position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(16, 18, 19, .86) 0%, rgba(16, 18, 19, .55) 30%, rgba(16, 18, 19, .12) 58%, rgba(16, 18, 19, .28) 100%);
-  opacity: var(--p);
+.hero-dates label { display: block; font-size: .85rem; opacity: .92; }
+.hero-dates input {
+  display: block; width: 100%; margin-top: 10px; padding: 0 0 10px;
+  background: none; border: 0; border-bottom: 1px solid rgba(255, 255, 255, .85); border-radius: 0;
+  color: #fff; font: 500 1rem var(--police-texte); color-scheme: dark;
 }
-/* Le texte occupe plus de hauteur sur mobile : voile plus soutenu */
-@media (max-width: 760px) {
-  .sh-media::after {
-    background: linear-gradient(to top, rgba(16, 18, 19, .9) 0%, rgba(16, 18, 19, .72) 40%, rgba(16, 18, 19, .25) 70%, rgba(16, 18, 19, .3) 100%);
-  }
+.hero-dates input:focus-visible { outline: none; border-bottom: 2px solid #fff; }
+.hero-dates button {
+  font: 600 .92rem var(--police-texte); color: var(--ink); background: #fff;
+  border: 0; border-radius: 2px; padding: 13px 22px; min-height: 46px; cursor: pointer;
+  transition: background .2s;
 }
-/* Le nom de la maison, scindé en deux moitiés qui s'écartent */
-.sh-titles {
-  --split: clamp(150px, 46vw, 660px);
-  position: absolute; inset: 0; z-index: 2; pointer-events: none;
-  display: flex; align-items: center; justify-content: center;
-  gap: calc(14px + var(--split) * var(--p));
-  opacity: clamp(0, calc(1 - (var(--p) - .58) * 2.6), 1);
+.hero-dates button:hover { background: var(--teinte); }
+.hero-dates button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.hero-prix { margin-top: 18px; font-size: .88rem; opacity: .88; }
+@media (max-width: 640px) {
+  .hero-dates { grid-template-columns: 1fr 1fr; }
+  .hero-dates button { grid-column: 1 / -1; padding: 15px; }
+  .hero-lieu { letter-spacing: .32em; }
 }
-.sh-titles span {
-  font-family: var(--police-titre); font-weight: 500;
-  font-size: clamp(2.1rem, 6.6vw, 5rem); line-height: 1; white-space: nowrap;
-  text-shadow: 0 2px 30px rgba(0, 0, 0, .5);
-}
-.sh-hint {
-  position: absolute; z-index: 3; left: 0; right: 0; bottom: 34px; text-align: center;
-  font-size: .92rem; color: #ebeae6; opacity: clamp(0, calc(1 - var(--p) * 3.4), 1);
-}
-.sh-hint svg { width: 18px; height: 18px; margin: 8px auto 0; animation: shBob 2.2s ease-in-out infinite; }
-@keyframes shBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
-.sh-copy {
-  --in: clamp(0, calc((var(--p) - .70) * 4), 1);
-  position: absolute; z-index: 3; left: 0; right: 0; bottom: 0;
-  padding-bottom: clamp(40px, 8svh, 80px);
-  opacity: var(--in);
-  transform: translateY(calc(26px * (1 - var(--in))));
-}
-.sh-copy h1 { font-size: clamp(2rem, 4.8vw, 3.4rem); max-width: 16ch; text-wrap: balance; }
-.sh-copy p.lede { margin-top: 16px; max-width: 50ch; font-size: 1.08rem; color: #f1f0ed; }
-@media (max-width: 760px) { .sh-copy p.lede { display: none; } }
-/* Les points clés en une ligne de texte, séparés par des points médians */
-.sh-facts { margin-top: 18px; font-size: 1rem; color: #ebeae6; display: flex; flex-wrap: wrap; row-gap: 2px; }
-.sh-facts span { white-space: nowrap; }
-/* Séparateur après chaque élément (sauf le dernier) : au retour à la ligne,
-   il reste en fin de ligne plutôt que d'ouvrir la suivante */
-.sh-facts span:not(:last-child)::after { content: "·"; margin: 0 .55em; opacity: .7; }
-.sh-copy .cta-row { margin-top: 28px; display: flex; gap: 12px 14px; flex-wrap: wrap; align-items: center; }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
@@ -196,22 +145,6 @@ header.nav.scrolled .nav-reserver:hover { background: var(--terra-dark); border-
 .btn-primary { background: var(--terra); color: #fff; }
 .btn-primary:hover { background: var(--terra-dark); }
 .btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
-/* Sur la photo sombre de l'accueil, le contour de focus passe en blanc */
-.sh-copy .btn:focus-visible, .sh-copy .link-light:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
-/* Action secondaire : un simple lien, pour ne garder qu'un bouton par écran */
-.link-light {
-  color: #fff; font-weight: 600; text-decoration: underline;
-  text-underline-offset: 5px; text-decoration-thickness: 1px;
-}
-.link-light:hover { text-decoration-thickness: 2px; }
-/* Bouton téléphone (icône seule), à côté de « Réserver » sur la photo de l'accueil */
-.btn-tel {
-  padding: 0; width: 56px; height: 56px; color: #fff;
-  border: 1.5px solid rgba(255, 255, 255, .75); background: rgba(0, 0, 0, .18);
-}
-.btn-tel:hover { background: rgba(255, 255, 255, .14); }
-.btn-tel svg { width: 22px; height: 22px; flex: none; }
-@media (max-width: 420px) { .sh-copy .cta-row .btn-primary { flex: 1 1 auto; } }
 
 /* ---------- Sections ---------- */
 section { padding: 104px 0; }
@@ -223,9 +156,6 @@ h2.title { font-size: clamp(1.9rem, 3.6vw, 2.75rem); text-wrap: balance; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .js .reveal { opacity: 1; transform: none; transition: none; }
-  /* Pas d'expansion : le hero est ouvert d'emblée, sur une hauteur d'écran normale */
-  .scroll-hero { height: 100svh; }
-  .sh-hint svg { animation: none; }
 }
 
 /* ---------- Logement ---------- */
